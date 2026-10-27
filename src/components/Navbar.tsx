@@ -5,15 +5,18 @@ import { Logo } from "@/components/Logo";
 import { useSiteData } from "@/context/SiteDataContext";
 
 const NAV_LINKS = [
-  { label: "Home", to: "/" },
   { label: "Portfolio", to: "/portfolio" },
   { label: "Testimonials", to: "/testimonials" },
   { label: "Our Story", to: "/our-story" },
-  { label: "Contact", to: "/contact" },
 ] as const;
 
-/** Sticky navbar: transparent over the dark hero, glass once scrolled. */
-export function Navbar() {
+interface NavbarProps {
+  /** When true, renders a clean glass navbar with dark text even before scrolling (for pages with light top sections). */
+  lightTop?: boolean;
+}
+
+/** Sticky navbar: transparent over dark hero, glass with dark text once scrolled or on light pages. */
+export function Navbar({ lightTop = false }: NavbarProps) {
   const { data } = useSiteData();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -33,13 +36,14 @@ export function Navbar() {
     };
   }, [menuOpen]);
 
-  const tone: "light" | "dark" = scrolled ? "dark" : "light";
+  const isGlass = lightTop || scrolled;
+  const tone: "light" | "dark" = isGlass ? "dark" : "light";
   const phoneHref = `tel:${(data.company.phones[0] ?? "").replace(/\s/g, "")}`;
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled ? "glass py-2 shadow-soft" : "bg-transparent py-4"
+        isGlass ? "glass py-2 shadow-soft border-b border-border/40" : "bg-transparent py-4"
       }`}
     >
       <div className="container-site flex items-center justify-between gap-4">
@@ -53,9 +57,8 @@ export function Navbar() {
             <Link
               key={link.to}
               to={link.to}
-              activeOptions={{ exact: link.to === "/" }}
               className="rounded-full px-4 py-2 text-sm font-medium transition-colors [&.active]:bg-brand/10 [&.active]:text-brand"
-              style={{ color: scrolled ? "var(--ink)" : "#fff" }}
+              style={{ color: isGlass ? "var(--ink)" : "#fff" }}
             >
               {link.label}
             </Link>
@@ -75,7 +78,7 @@ export function Navbar() {
           {/* Hamburger */}
           <button
             className="rounded-lg p-2 lg:hidden"
-            style={{ color: scrolled ? "var(--ink)" : "#fff" }}
+            style={{ color: isGlass ? "var(--ink)" : "#fff" }}
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((v) => !v)}
@@ -114,7 +117,7 @@ export function Navbar() {
               key={link.to}
               to={link.to}
               onClick={() => setMenuOpen(false)}
-              className="rounded-xl px-4 py-3 font-display text-base font-semibold text-white transition-colors hover:bg-white/10 [&.active]:bg-white/10 [&.active]:text-sky"
+              className="rounded-xl px-4 py-3 font-display text-base font-semibold text-white transition-colors hover:bg-white/10 [&.active]:bg-white/10 [&.active]:text-brand"
             >
               {link.label}
             </Link>

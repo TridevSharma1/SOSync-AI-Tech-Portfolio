@@ -1,18 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
-import { Hero } from "@/components/sections/Hero";
-import { AboutSection } from "@/components/sections/AboutSection";
-import { ServicesSection } from "@/components/sections/ServicesSection";
-import { WhyChooseUs } from "@/components/sections/WhyChooseUs";
-import { TechnologiesSection } from "@/components/sections/TechnologiesSection";
-import { PortfolioPreview } from "@/components/sections/PortfolioGrid";
-import { ProcessSection } from "@/components/sections/ProcessSection";
-import { CtaBanner, StatsBand } from "@/components/sections/CtaBanner";
-import { TestimonialSlider } from "@/components/sections/TestimonialSlider";
-import { TeamSection } from "@/components/sections/TeamSection";
-import { FaqSection } from "@/components/sections/FaqSection";
-import { ContactSection } from "@/components/sections/ContactSection";
+import { PortfolioStorySection } from "@/components/sections/PortfolioStorySection";
+import { RecentProjectsSection } from "@/components/sections/RecentProjectsSection";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -38,21 +28,12 @@ export const Route = createFileRoute("/")({
 function Index() {
   return (
     <>
-      <Navbar />
-      <main>
-        <Hero />
-        <AboutSection />
-        <ServicesSection />
-        <WhyChooseUs />
-        <StatsBand />
-        <TechnologiesSection />
-        <PortfolioPreview />
-        <ProcessSection />
-        <TestimonialSlider />
-        <TeamSection />
-        <FaqSection />
-        <CtaBanner />
-        <ContactSection />
+      <Navbar lightTop />
+      <main className="pt-16 sm:pt-20">
+        {/* 1st: About Us */}
+        <PortfolioStorySection />
+        {/* 2nd: Recent Projects / Portfolio */}
+        <RecentProjectsSection />
       </main>
       <Footer />
     </>

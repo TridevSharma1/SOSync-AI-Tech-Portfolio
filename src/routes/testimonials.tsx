@@ -5,7 +5,6 @@ import { Navbar } from "@/components/Navbar";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { StarRating } from "@/components/StarRating";
-import { PageHero } from "@/components/sections/PageHero";
 import { TestimonialSlider } from "@/components/sections/TestimonialSlider";
 import { useSiteData } from "@/context/SiteDataContext";
 
@@ -36,12 +35,7 @@ function TestimonialsPage() {
   return (
     <>
       <Navbar />
-      <main>
-        <PageHero
-          eyebrow="Testimonials"
-          title="Loved by founders, trusted by enterprises"
-          description="A 4.9/5 average rating across 150+ engagements — here is the feedback in our clients' own words."
-        />
+      <main className="bg-navy pt-16 sm:pt-20">
         <TestimonialSlider />
 
         <section className="section-pad bg-secondary/50">

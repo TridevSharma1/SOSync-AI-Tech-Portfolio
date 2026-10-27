@@ -5,27 +5,94 @@ import { useSiteData } from "@/context/SiteDataContext";
 
 const SOCIALS = ["linkedin", "twitter", "instagram", "facebook", "github"] as const;
 
+/**
+ * Modern, cohesive footer matching the website's clean white, obsidian & tech-orange design language.
+ */
 export function Footer() {
   const { data } = useSiteData();
-  const { company, social, services } = data;
+  const { company, social } = data;
 
   return (
-    <footer className="relative overflow-hidden bg-navy text-slate-300">
-      <div className="hero-grid-line absolute inset-0" aria-hidden="true" />
+    <footer className="relative border-t border-border/70 bg-white text-muted-foreground">
+      {/* Top brand gradient accent line */}
+      <div className="h-[2px] w-full bg-gradient-brand" />
+
+      {/* Subtle ambient glow */}
       <div
-        className="absolute -right-32 -top-32 size-96 rounded-full bg-brand/25 blur-3xl animate-pulse-glow"
+        className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 h-48 w-96 rounded-full bg-primary/5 blur-3xl"
         aria-hidden="true"
       />
-      <div className="container-site relative py-16">
-        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1.2fr_1.4fr]">
-          {/* Brand */}
-          <div>
-            <Logo tone="light" name={company.name} />
-            <p className="mt-5 max-w-sm text-sm leading-relaxed text-slate-400">
-              {company.tagline} We partner with startups and enterprises worldwide to design,
-              build and scale intelligent digital products.
+
+      <div className="container-site relative py-12 lg:py-14">
+        <div className="flex flex-col items-center justify-between gap-8 lg:flex-row">
+          {/* Brand & Location */}
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <Logo tone="dark" name={company.name} />
+            <p className="mt-3 max-w-sm text-xs leading-relaxed text-muted-foreground">
+              {company.tagline}
             </p>
-            <div className="mt-6 flex gap-3">
+            <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Icon name="pin" className="size-3.5 text-primary" />
+              <span>Kharadi, Pune, Maharashtra</span>
+            </div>
+          </div>
+
+          {/* Navigation Links with pill hover states */}
+          <nav
+            aria-label="Footer navigation"
+            className="flex flex-wrap items-center justify-center gap-2 text-sm font-semibold text-foreground/80"
+          >
+            <Link
+              to="/portfolio"
+              className="rounded-full px-4 py-2 transition-all hover:bg-primary-soft hover:text-primary"
+            >
+              Portfolio
+            </Link>
+            <Link
+              to="/testimonials"
+              className="rounded-full px-4 py-2 transition-all hover:bg-primary-soft hover:text-primary"
+            >
+              Testimonials
+            </Link>
+            <Link
+              to="/our-story"
+              className="rounded-full px-4 py-2 transition-all hover:bg-primary-soft hover:text-primary"
+            >
+              Our Story
+            </Link>
+            <Link
+              to="/contact"
+              className="rounded-full px-4 py-2 transition-all hover:bg-primary-soft hover:text-primary"
+            >
+              Contact
+            </Link>
+          </nav>
+
+          {/* Contact Pills & Social Buttons */}
+          <div className="flex flex-col items-center gap-3 lg:items-end">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <a
+                href={`tel:${company.phones[0]?.replace(/\s/g, "")}`}
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-1.5 text-xs font-semibold text-foreground transition-all hover:border-primary hover:text-primary hover:shadow-xs"
+              >
+                <span className="flex size-5 items-center justify-center rounded-full bg-primary-soft text-primary">
+                  <Icon name="phone" className="size-3" />
+                </span>
+                {company.phones[0]}
+              </a>
+              <a
+                href={`mailto:${company.email}`}
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-1.5 text-xs font-semibold text-foreground transition-all hover:border-primary hover:text-primary hover:shadow-xs"
+              >
+                <span className="flex size-5 items-center justify-center rounded-full bg-primary-soft text-primary">
+                  <Icon name="mail" className="size-3" />
+                </span>
+                {company.email}
+              </a>
+            </div>
+
+            {/* Social Icons */}
+            <div className="flex items-center gap-2">
               {SOCIALS.map((s) => (
                 <a
                   key={s}
@@ -33,118 +100,23 @@ export function Footer() {
                   target="_blank"
                   rel="noreferrer"
                   aria-label={s}
-                  className="flex size-9 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-slate-300 transition-all hover:-translate-y-0.5 hover:border-cyan/60 hover:text-cyan"
+                  className="flex size-8 items-center justify-center rounded-full border border-border/80 bg-surface text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary hover:bg-primary hover:text-white hover:shadow-xs"
                 >
-                  <Icon name={s} filled className="size-4" />
+                  <Icon name={s} filled className="size-3.5" />
                 </a>
               ))}
             </div>
           </div>
-
-          {/* Quick links */}
-          <nav aria-label="Quick links">
-            <h3 className="font-display text-sm font-bold uppercase tracking-widest text-white">
-              Quick Links
-            </h3>
-            <ul className="mt-5 space-y-3 text-sm">
-              {[
-                { label: "Home", to: "/" },
-                { label: "Portfolio", to: "/portfolio" },
-                { label: "Testimonials", to: "/testimonials" },
-                { label: "Our Story", to: "/our-story" },
-                { label: "Contact", to: "/contact" },
-              ].map((l) => (
-                <li key={l.to}>
-                  <Link
-                    to={l.to}
-                    className="inline-flex items-center gap-2 transition-colors hover:text-cyan"
-                  >
-                    <Icon name="chevron-right" className="size-3.5 text-cyan" />
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* Services */}
-          <nav aria-label="Services">
-            <h3 className="font-display text-sm font-bold uppercase tracking-widest text-white">
-              Services
-            </h3>
-            <ul className="mt-5 space-y-3 text-sm">
-              {services.slice(0, 8).map((s) => (
-                <li key={s.id}>
-                  <a
-                    href="/#services"
-                    className="inline-flex items-center gap-2 transition-colors hover:text-cyan"
-                  >
-                    <Icon name="chevron-right" className="size-3.5 text-cyan" />
-                    {s.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* Contact */}
-          <div>
-            <h3 className="font-display text-sm font-bold uppercase tracking-widest text-white">
-              Get in Touch
-            </h3>
-            <ul className="mt-5 space-y-4 text-sm">
-              <li className="flex gap-3">
-                <Icon name="pin" className="mt-0.5 size-4 shrink-0 text-cyan" />
-                <span className="text-slate-400">
-                  {company.addressLines.map((line) => (
-                    <span key={line} className="block">
-                      {line}
-                    </span>
-                  ))}
-                </span>
-              </li>
-              {company.phones.map((p) => (
-                <li key={p} className="flex gap-3">
-                  <Icon name="phone" className="mt-0.5 size-4 shrink-0 text-cyan" />
-                  <a href={`tel:${p.replace(/\s/g, "")}`} className="transition-colors hover:text-cyan">
-                    {p}
-                  </a>
-                </li>
-              ))}
-              <li className="flex gap-3">
-                <Icon name="mail" className="mt-0.5 size-4 shrink-0 text-cyan" />
-                <a href={`mailto:${company.email}`} className="transition-colors hover:text-cyan">
-                  {company.email}
-                </a>
-              </li>
-              <li className="flex gap-3">
-                <Icon name="clock" className="mt-0.5 size-4 shrink-0 text-cyan" />
-                <span className="text-slate-400">
-                  {company.workingDays}, {company.hours}
-                </span>
-              </li>
-            </ul>
-          </div>
         </div>
 
-        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-7 text-xs text-slate-400 sm:flex-row">
-          <p>
-            © {new Date().getFullYear()} {company.name}. All rights reserved.
-          </p>
-          <div className="flex items-center gap-5">
-            <a href="#" className="transition-colors hover:text-cyan">
-              Privacy Policy
-            </a>
-            <a href="#" className="transition-colors hover:text-cyan">
-              Terms &amp; Conditions
-            </a>
-            {/* Clearly visible admin redirect, per spec */}
-            <Link
-              to="/admin/login"
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 font-semibold text-white transition-colors hover:border-cyan/60 hover:text-cyan"
-            >
-              <Icon name="dashboard" className="size-3.5" />
-              Admin Login
+        {/* Bottom copyright bar */}
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row">
+          <p>© {new Date().getFullYear()} {company.name}. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <span>Thite Nagar, Kharadi, Pune – 411014</span>
+            <span className="text-border">|</span>
+            <Link to="/contact" className="font-semibold text-primary hover:underline">
+              Get in Touch →
             </Link>
           </div>
         </div>

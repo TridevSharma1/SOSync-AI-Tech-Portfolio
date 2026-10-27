@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
-import { PageHero } from "@/components/sections/PageHero";
-import { PortfolioGrid } from "@/components/sections/PortfolioGrid";
+import { PortfolioStorySection } from "@/components/sections/PortfolioStorySection";
+import { RecentProjectsSection } from "@/components/sections/RecentProjectsSection";
 
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
@@ -28,14 +28,12 @@ export const Route = createFileRoute("/portfolio")({
 function PortfolioPage() {
   return (
     <>
-      <Navbar />
-      <main>
-        <PageHero
-          eyebrow="Portfolio"
-          title="Work we're proud of"
-          description="Platforms, apps and AI systems shipped for clients across e-commerce, healthcare, fintech, manufacturing and education."
-        />
-        <PortfolioGrid />
+      <Navbar lightTop />
+      <main className="pt-16 sm:pt-20">
+        {/* 1st: About Us */}
+        <PortfolioStorySection />
+        {/* 2nd: Recent Projects / Portfolio */}
+        <RecentProjectsSection />
       </main>
       <Footer />
     </>

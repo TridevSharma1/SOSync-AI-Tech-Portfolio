@@ -6,8 +6,8 @@
 
 /*
  * SOSync Ai Tech IT Solution — Design System
- * Palette: Dark Navy #0F172A | Blue #2563EB | Cyan #06B6D4 | Sky #38BDF8
- *          Success #22C55E | Background #F8FAFC | Ink #1E293B
+ * Official Logo Palette: Obsidian Dark #0B0F17 | Tech Orange #FF6B00 | Warm Amber #FFA012 | Bright Gold #FFB84D
+ *                        Success #22C55E | Page Background #FAFAF9 | Deep Ink #111827
  */
 
 @theme inline {
@@ -49,60 +49,60 @@
 :root {
   --radius: 0.75rem;
 
-  /* Brand palette */
-  --navy: oklch(0.208 0.042 265.755);            /* #0F172A */
-  --navy-soft: oklch(0.28 0.05 264);
-  --brand: oklch(0.546 0.245 262.881);           /* #2563EB */
-  --brand-deep: oklch(0.46 0.22 264);
-  --cyan: oklch(0.715 0.143 215.2);              /* #06B6D4 */
-  --sky: oklch(0.746 0.16 232.661);              /* #38BDF8 */
+  /* Brand palette derived from official SOSync AI Tech logo */
+  --navy: oklch(0.16 0.02 260);                  /* #0B0F17 Deep Obsidian */
+  --navy-soft: oklch(0.22 0.025 260);            /* #151A24 Deep Charcoal */
+  --brand: oklch(0.67 0.22 45);                 /* #FF6B00 Vibrant Tech Orange */
+  --brand-deep: oklch(0.58 0.23 38);            /* #E05300 Deep Fiery Orange */
+  --cyan: oklch(0.76 0.185 64);                 /* #FFA012 Warm Amber Accent */
+  --sky: oklch(0.82 0.14 68);                   /* #FFB84D Bright Amber / Gold */
   --success: oklch(0.723 0.219 149.579);         /* #22C55E */
-  --page: oklch(0.984 0.003 247.858);            /* #F8FAFC */
-  --ink: oklch(0.279 0.041 260.031);             /* #1E293B */
-  --ink-soft: oklch(0.554 0.046 257.417);
+  --page: oklch(0.985 0.003 60);                 /* Clean crisp light page background #FAFAF9 */
+  --ink: oklch(0.20 0.02 260);                  /* High-contrast ink #111827 */
+  --ink-soft: oklch(0.48 0.03 260);
 
   /* Semantic tokens */
   --background: var(--page);
   --foreground: var(--ink);
   --card: oklch(1 0 0);
   --card-foreground: var(--ink);
-  --muted: oklch(0.955 0.008 250);
+  --muted: oklch(0.955 0.01 50);
   --muted-foreground: var(--ink-soft);
-  --border: oklch(0.925 0.015 253);
-  --input: oklch(0.925 0.015 253);
+  --border: oklch(0.92 0.01 50);
+  --input: oklch(0.92 0.01 50);
   --ring: var(--brand);
   --primary: var(--brand);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.945 0.02 240);
+  --secondary: oklch(0.96 0.02 55);
   --secondary-foreground: var(--brand-deep);
-  --accent: oklch(0.955 0.03 215);
+  --accent: oklch(0.95 0.035 60);
   --accent-foreground: var(--brand-deep);
   --destructive: oklch(0.577 0.245 27.325);
 
   /* Effects */
-  --gradient-brand: linear-gradient(120deg, var(--brand) 0%, var(--cyan) 100%);
-  --gradient-deep: linear-gradient(135deg, #0f172a 0%, #1d3a6e 55%, #0e7490 100%);
-  --shadow-soft: 0 6px 24px -8px oklch(0.208 0.042 265.755 / 0.12);
-  --shadow-lift: 0 16px 40px -12px oklch(0.208 0.042 265.755 / 0.22);
-  --shadow-glow: 0 10px 36px -8px oklch(0.546 0.245 262.881 / 0.45);
+  --gradient-brand: linear-gradient(125deg, #ff5500 0%, #ff6b00 45%, #ffa012 100%);
+  --gradient-deep: linear-gradient(135deg, #0b0f17 0%, #1a1518 50%, #29160e 100%);
+  --shadow-soft: 0 6px 24px -8px oklch(0.16 0.02 260 / 0.08);
+  --shadow-lift: 0 16px 40px -12px oklch(0.16 0.02 260 / 0.18);
+  --shadow-glow: 0 10px 36px -8px oklch(0.67 0.22 45 / 0.45);
 }
 
 .dark {
   --background: var(--navy);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.24 0.045 265);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.28 0.045 264);
-  --muted-foreground: oklch(0.704 0.04 256.788);
+  --foreground: oklch(0.985 0.003 60);
+  --card: oklch(0.20 0.025 260);
+  --card-foreground: oklch(0.985 0.003 60);
+  --muted: oklch(0.24 0.025 260);
+  --muted-foreground: oklch(0.72 0.02 260);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: var(--cyan);
-  --primary: var(--cyan);
-  --primary-foreground: var(--navy);
-  --secondary: oklch(0.28 0.045 264);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --accent: oklch(0.28 0.045 264);
-  --accent-foreground: oklch(0.984 0.003 247.858);
+  --ring: var(--brand);
+  --primary: var(--brand);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.24 0.025 260);
+  --secondary-foreground: oklch(0.985 0.003 60);
+  --accent: oklch(0.24 0.025 260);
+  --accent-foreground: oklch(0.985 0.003 60);
   --destructive: oklch(0.704 0.191 22.216);
 }
 
@@ -144,15 +144,72 @@
 @media (min-width: 768px) { .section-pad { padding-block: 7rem; } }
 
 /* ---------- Typography & brand effects ---------- */
-.text-gradient {
+.text-gradient,
+.text-gradient-brand {
   background: var(--gradient-brand);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
+.bg-primary-soft {
+  background-color: oklch(0.67 0.22 45 / 0.12);
+}
+
+.shadow-elegant {
+  box-shadow: 0 14px 35px -8px oklch(0.67 0.22 45 / 0.40);
+}
+
+.shadow-card {
+  box-shadow: 0 4px 20px -4px oklch(0.16 0.02 260 / 0.08);
+}
+
+.bg-surface-soft {
+  background-color: oklch(0.96 0.01 50);
+}
+
+.bg-surface {
+  background-color: oklch(0.985 0.003 60);
+}
+
+.bg-gradient-warm {
+  background: linear-gradient(135deg, #fff9f5 0%, #fff2eb 50%, #feeade 100%);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(12px);
+  border: 1px solid oklch(0.92 0.01 50);
+  box-shadow: 0 4px 20px -4px oklch(0.16 0.02 260 / 0.08);
+}
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 35px -8px oklch(0.67 0.22 45 / 0.25);
+}
+
+.text-primary-light {
+  color: #ffb84d;
+}
+
+.bg-gradient-brand {
+  background: var(--gradient-brand);
+}
+
+.container-px {
+  padding-inline: 1.25rem;
+}
+@media (min-width: 640px) {
+  .container-px {
+    padding-inline: 2rem;
+  }
+}
+
 .text-gradient-navy {
-  background: linear-gradient(100deg, var(--navy) 10%, var(--brand) 60%, var(--cyan) 100%);
+  background: linear-gradient(100deg, var(--ink) 10%, var(--brand) 65%, var(--cyan) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -187,11 +244,11 @@
 
 .btn-gradient:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 44px -10px oklch(0.546 0.245 262.881 / 0.55);
+  box-shadow: 0 16px 44px -10px oklch(0.67 0.22 45 / 0.55);
 }
 
 .btn-outline {
-  border: 1.5px solid oklch(0.208 0.042 265.755 / 0.25);
+  border: 1.5px solid oklch(0.20 0.02 260 / 0.22);
   color: var(--ink);
   background: transparent;
 }
@@ -227,11 +284,11 @@
 .card-soft:hover {
   transform: translateY(-6px);
   box-shadow: var(--shadow-lift);
-  border-color: oklch(0.546 0.245 262.881 / 0.35);
+  border-color: oklch(0.67 0.22 45 / 0.35);
 }
 
 .glass {
-  background: oklch(1 0 0 / 0.65);
+  background: oklch(1 0 0 / 0.75);
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   border: 1px solid oklch(1 0 0 / 0.55);
@@ -239,7 +296,7 @@
 }
 
 .glass-dark {
-  background: oklch(0.208 0.042 265.755 / 0.55);
+  background: oklch(0.16 0.02 260 / 0.65);
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   border: 1px solid oklch(1 0 0 / 0.12);
@@ -299,7 +356,7 @@
 
 /* ---------- Decorative ---------- */
 .dot-grid {
-  background-image: radial-gradient(oklch(0.208 0.042 265.755 / 0.12) 1px, transparent 1px);
+  background-image: radial-gradient(oklch(0.20 0.02 260 / 0.10) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
@@ -330,10 +387,10 @@
 .field:focus {
   outline: none;
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px oklch(0.546 0.245 262.881 / 0.18);
+  box-shadow: 0 0 0 3px oklch(0.67 0.22 45 / 0.22);
 }
 
-.field::placeholder { color: oklch(0.554 0.046 257.417 / 0.8); }
+.field::placeholder { color: oklch(0.48 0.03 260 / 0.8); }
 
 .label {
   display: block;
