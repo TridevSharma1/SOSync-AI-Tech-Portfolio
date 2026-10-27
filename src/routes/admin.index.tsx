@@ -75,7 +75,7 @@ function AdminDashboard() {
   return (
     <div className="flex min-h-screen bg-background">
       <aside className="hidden w-64 shrink-0 flex-col bg-navy p-5 md:flex">
-        <Logo tone="light" />
+        <Logo tone="light" name={data.company.shortName} />
         <nav className="mt-8 flex flex-1 flex-col gap-1">
           {nav.map((n) => (
             <button key={n.id} onClick={() => setTab(n.id)}
@@ -180,8 +180,8 @@ function ListManager({ listKey }: { listKey: ListKey }) {
         {shown.map((r) => (
           <div key={r.id} className="flex items-center gap-4 p-4">
             <div className="min-w-0 flex-1">
-              <p className="truncate font-semibold">{String(r[cfg.fields[0].key] ?? "")}</p>
-              <p className="truncate text-sm text-muted-foreground">{String(r[cfg.fields[1]?.key] ?? "")}</p>
+              <p className="truncate font-semibold">{String(r[cfg.fields[0]!.key] ?? "")}</p>
+              <p className="truncate text-sm text-muted-foreground">{String(cfg.fields[1] ? r[cfg.fields[1].key] ?? "" : "")}</p>
             </div>
             <button aria-label="Edit" className="rounded-lg p-2 hover:bg-muted" onClick={() => setEditing(r)}><Icon name="edit" className="size-4" /></button>
             <button aria-label="Delete" className="rounded-lg p-2 text-destructive hover:bg-muted" onClick={() => confirm("Delete this item?") && removeItem(listKey, r.id)}><Icon name="trash" className="size-4" /></button>
@@ -203,7 +203,7 @@ function ItemForm({ fields, initial, onSave, onCancel }: { fields: Field[]; init
   const save = () => {
     const out: Record<string, unknown> = {};
     for (const f of fields) {
-      const v = vals[f.key];
+      const v = vals[f.key] ?? "";
       out[f.key] = f.type === "number" ? Number(v) || 0 : f.type === "list" ? v.split(",").map((s) => s.trim()).filter(Boolean) : v;
     }
     onSave(out);
@@ -211,7 +211,7 @@ function ItemForm({ fields, initial, onSave, onCancel }: { fields: Field[]; init
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 p-4" onClick={onCancel}>
       <div className="card-soft max-h-[90vh] w-full max-w-lg overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
-        <h2 className="font-display text-lg font-bold">{initial.id ? "Edit item" : "Add item"}</h2>
+        <h2 className="font-display text-lg font-bold">{initial["id"] ? "Edit item" : "Add item"}</h2>
         <div className="mt-4 space-y-4">
           {fields.map((f) => (
             <div key={f.key}>
@@ -284,7 +284,7 @@ function SingletonEditor({ k }: { k: "company" | "social" | "hero" }) {
       <h2 className="font-display font-bold capitalize">{k === "social" ? "Social links" : k === "hero" ? "Homepage hero" : "Company & contact details"}</h2>
       <div className="mt-4 space-y-4">
         {Object.keys(vals).map((key) => {
-          const long = Array.isArray(obj[key]) || vals[key].length > 60;
+          const long = Array.isArray(obj[key]) || (vals[key] ?? "").length > 60;
           return (
             <div key={key}>
               <label className="label">{LABELS[key] ?? key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase())}</label>

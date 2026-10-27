@@ -19,7 +19,7 @@ export const Route = createFileRoute("/admin/login")({
 });
 
 function AdminLogin() {
-  const { login, isAdmin, authReady } = useSiteData();
+  const { login, isAdmin, authReady, data } = useSiteData();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -40,7 +40,7 @@ function AdminLogin() {
       <div className="hero-grid-line absolute inset-0" aria-hidden="true" />
       <div className="absolute -left-32 top-10 size-96 rounded-full bg-brand/30 blur-3xl animate-pulse-glow" aria-hidden="true" />
       <form onSubmit={submit} className="card-soft relative w-full max-w-md p-8">
-        <Logo tone="dark" />
+        <Logo tone="dark" name={data.company.shortName} />
         <h1 className="mt-6 font-display text-2xl font-bold text-foreground">Admin Login</h1>
         <p className="mt-1 text-sm text-muted-foreground">Sign in to manage website content.</p>
         <div className="mt-6 space-y-4">
