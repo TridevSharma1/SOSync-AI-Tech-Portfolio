@@ -23,7 +23,7 @@ export default function PortfolioPage() {
     <>
       <Navbar lightTop />
       <main className="pt-16 sm:pt-20">
-        {/* 1st: About Us */}
+        {/* 1st: 360 Digital Solutions / About Us section */}
         <PortfolioStorySection />
         {/* 2nd: Recent Projects / Portfolio */}
         <RecentProjectsSection />
