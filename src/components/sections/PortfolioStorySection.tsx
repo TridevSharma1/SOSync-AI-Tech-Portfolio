@@ -4,22 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSiteData } from "@/context/SiteDataContext";
 
-const INITIAL_PROJECT_TITLES = new Set([
-  "phoolrani sarees",
-  "sp art hubs",
-  "karyon college",
-  "sonai residential world school",
-  "sonai school erp software",
-  "erudition infinite",
-  "suraj naturo dry fruits",
-  "finsight ai",
-  "medicare+ mobile app",
-  "salessync crm",
-  "manufactpro erp",
-  "nova brand identity system",
-  "pixelcraft ui kit & graphics",
-]);
-
 const DEFAULT_SLIDES = [
   { src: "/about-story-slide-2.jpg", alt: "SOSync AI Tech Executive Leadership", title: "Executive Leadership" },
   { src: "/about-story-slide-1.jpg", alt: "SOSync AI Tech Engineers & Team", title: "Engineering Excellence" },
@@ -55,23 +39,9 @@ export function PortfolioStorySection({ className = "" }: { className?: string }
         isProject: false,
       }));
 
-    // Check if real admin projects exist
-    const hasAdminProjects = (projects || []).some((p) => {
-      const t = (p.title || "").trim().toLowerCase();
-      return !INITIAL_PROJECT_TITLES.has(t);
-    });
-
     // 2. Project images with showIn360 enabled
     const projectItems = (projects || [])
-      .filter((p) => {
-        if (p.showIn360 === false) return false;
-        const t = (p.title || "").trim().toLowerCase();
-        // Exclude initial template dummy projects if real admin projects exist
-        if (hasAdminProjects && INITIAL_PROJECT_TITLES.has(t)) {
-          return false;
-        }
-        return Boolean(p.image);
-      })
+      .filter((p) => p.showIn360 !== false && Boolean(p.image))
       .map((p) => ({
         _id: `proj-${p._id || p.id}`,
         src: p.image,

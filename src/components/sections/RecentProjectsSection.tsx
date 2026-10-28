@@ -3,25 +3,6 @@
 import { useMemo, useState } from "react";
 import { useSiteData } from "@/context/SiteDataContext";
 
-const DUMMY_PROJECT_TITLES = new Set([
-  "phoolrani sarees",
-  "sp art hubs",
-  "karyon college",
-  "sonai residential world school",
-  "sonai school erp software",
-  "erudition infinite",
-  "suraj naturo dry fruits",
-  "finsight ai",
-  "medicare+ mobile app",
-  "salessync crm",
-  "manufactpro erp",
-  "nova brand identity system",
-  "pixelcraft ui kit & graphics",
-  "shopverse",
-  "medicare+",
-  "edulearn",
-]);
-
 const BASE_CATEGORIES = [
   "All",
   "Websites",
@@ -34,18 +15,15 @@ const BASE_CATEGORIES = [
   "E-Commerce",
 ] as const;
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 50;
 
 export function RecentProjectsSection() {
   const { projects } = useSiteData();
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
 
-  // Only real projects created by admin — all dummy template projects completely removed
   const projectList = useMemo(() => {
-    return (projects || []).filter(
-      (p) => !DUMMY_PROJECT_TITLES.has((p.title || "").trim().toLowerCase())
-    );
+    return projects || [];
   }, [projects]);
 
   // Dynamically include any additional custom categories from real projects
@@ -67,17 +45,17 @@ export function RecentProjectsSection() {
   const filtered = useMemo(() => {
     return projectList.filter((p) => {
       if (activeCategory === "All") return true;
-      const cat = (p.category || "").toLowerCase();
-      const act = activeCategory.toLowerCase();
-      if (activeCategory === "ERP") return cat.includes("erp");
-      if (activeCategory === "Websites") return cat.includes("web") || cat.includes("learning");
-      if (activeCategory === "CRM") return cat.includes("crm");
-      if (activeCategory === "AI Projects") return cat.includes("ai");
-      if (activeCategory === "Mobile Apps") return cat.includes("mobile") || cat.includes("app");
-      if (activeCategory === "Graphic Design") return cat.includes("graphic") || cat.includes("design");
-      if (activeCategory === "Branding") return cat.includes("brand");
-      if (activeCategory === "E-Commerce") return cat.includes("commerce");
-      return cat === act;
+      const cat = (p.category || "").trim().toLowerCase();
+      const act = activeCategory.trim().toLowerCase();
+      if (act === "erp") return cat.includes("erp");
+      if (act === "websites") return cat.includes("web") || cat.includes("learning");
+      if (act === "crm") return cat.includes("crm");
+      if (act === "ai projects" || act === "ai") return cat.includes("ai");
+      if (act === "mobile apps" || act === "mobile") return cat.includes("mobile") || cat.includes("app");
+      if (act === "graphic design" || act === "graphics") return cat.includes("graphic") || cat.includes("design");
+      if (act === "branding") return cat.includes("brand");
+      if (act === "e-commerce") return cat.includes("commerce");
+      return cat === act || cat.includes(act);
     });
   }, [projectList, activeCategory]);
 

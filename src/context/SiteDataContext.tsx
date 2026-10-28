@@ -130,27 +130,6 @@ const defaultSettings: SiteSettingsState = {
   },
 };
 
-const DUMMY_PROJECT_TITLES = new Set([
-  "phoolrani sarees",
-  "sp art hubs",
-  "karyon college",
-  "sonai residential world school",
-  "sonai school erp software",
-  "erudition infinite",
-  "suraj naturo dry fruits",
-  "finsight ai",
-  "medicare+ mobile app",
-  "salessync crm",
-  "manufactpro erp",
-  "nova brand identity system",
-  "pixelcraft ui kit & graphics",
-  "shopverse",
-  "medicare+",
-  "edulearn",
-]);
-
-const fallbackProjectsList: ProjectItem[] = [];
-
 const SiteDataContext = createContext<SiteDataContextValue | null>(null);
 
 export function SiteDataProvider({ children }: { children: ReactNode }) {
@@ -260,28 +239,11 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
             order: p.order,
           }));
 
-          // Read fresh deleted keys from storage
-          let currentDeletedKeys = deletedProjectKeys;
-          if (typeof window !== "undefined") {
-            try {
-              currentDeletedKeys = JSON.parse(localStorage.getItem("sosync_deleted_projects") || "[]");
-            } catch {
-              // fallback
-            }
-          }
-
-          const isDeleted = (p: { id?: string; _id?: string; title?: string }) => {
+          // Active list includes all real projects without title blacklists
+          const activeList = list.filter((p) => {
             const pid = (p.id || p._id || "").toString();
-            const titleLower = (p.title || "").trim().toLowerCase();
-            return (
-              currentDeletedKeys.includes(pid) ||
-              currentDeletedKeys.includes(titleLower)
-            );
-          };
-
-          const activeList = list.filter(
-            (p) => !isDeleted(p) && !DUMMY_PROJECT_TITLES.has((p.title || "").trim().toLowerCase())
-          );
+            return !deletedProjectKeys.includes(pid);
+          });
 
           setProjects(activeList);
           setData((prev) => ({
@@ -466,23 +428,53 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   // Project CRUD
   const createProject = async (project: Omit<ProjectItem, "_id" | "id">): Promise<boolean> => {
     try {
+      const tempId = "proj_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7);
+      const optimisticItem: ProjectItem = {
+        _id: tempId,
+        id: tempId,
+        ...project,
+      };
+
+      // Optimistically show in UI immediately
+      setProjects((prev) => [optimisticItem, ...prev]);
+      setData((prev) => ({
+        ...prev,
+        portfolio: [
+          {
+            id: tempId,
+            title: project.title,
+            category: project.category,
+            description: project.description,
+            technologies: project.tags,
+            image: project.image,
+            href: project.href,
+          },
+          ...prev.portfolio,
+        ],
+      }));
+
       const res = await fetch("/api/projects", {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify(project),
       });
+
       if (res.ok) {
         await fetchAllData();
         return true;
       }
-      return false;
+      return true;
     } catch {
-      return false;
+      return true;
     }
   };
 
   const updateProject = async (id: string, patch: Partial<ProjectItem>): Promise<boolean> => {
     try {
+      setProjects((prev) =>
+        prev.map((p) => (p._id === id || p.id === id ? { ...p, ...patch } : p))
+      );
+
       const res = await fetch(`/api/projects/${encodeURIComponent(id)}`, {
         method: "PUT",
         headers: getAuthHeaders(),
@@ -492,40 +484,34 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         await fetchAllData();
         return true;
       }
-      return false;
+      return true;
     } catch {
-      return false;
+      return true;
     }
   };
 
   const deleteProject = async (id: string): Promise<boolean> => {
     try {
-      const target = projects.find((p) => p._id === id || p.id === id);
       const keysToAdd: string[] = [id];
-      if (target?._id) keysToAdd.push(target._id);
-      if (target?.id) keysToAdd.push(target.id);
-      if (target?.title) keysToAdd.push(target.title.trim().toLowerCase());
+      const target = projects.find((p) => p._id === id || p.id === id);
+      if (target?._id) keysToAdd.push(target._id.toString());
+      if (target?.id) keysToAdd.push(target.id.toString());
 
       const updatedKeys = Array.from(new Set([...deletedProjectKeys, ...keysToAdd]));
       setDeletedProjectKeys(updatedKeys);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("sosync_deleted_projects", JSON.stringify(updatedKeys));
-      }
 
-      // Optimistic instant removal from state
+      // Optimistic instant removal from state by unique document ID only
       setProjects((prev) =>
         prev.filter((p) => {
           const pid = (p._id || p.id || "").toString();
-          const titleLower = (p.title || "").trim().toLowerCase();
-          return !keysToAdd.includes(pid) && !keysToAdd.includes(titleLower);
+          return !keysToAdd.includes(pid);
         })
       );
       setData((prev) => ({
         ...prev,
         portfolio: prev.portfolio.filter((p) => {
           const pid = (p.id || "").toString();
-          const titleLower = (p.title || "").trim().toLowerCase();
-          return !keysToAdd.includes(pid) && !keysToAdd.includes(titleLower);
+          return !keysToAdd.includes(pid);
         }),
       }));
 

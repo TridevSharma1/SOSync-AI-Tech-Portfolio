@@ -761,12 +761,15 @@ function ProjectsTab({
   const [catFilter, setCatFilter] = useState("All");
 
   const categories = useMemo(() => {
-    return ["All", ...new Set(projects.map((p) => p.category))];
+    const list = projects.map((p) => (p.category || "").trim()).filter(Boolean);
+    return ["All", ...Array.from(new Set(list))];
   }, [projects]);
 
   const filtered = useMemo(() => {
     return projects.filter((p) => {
-      const matchCat = catFilter === "All" || p.category === catFilter;
+      const pCat = (p.category || "").trim().toLowerCase();
+      const fCat = catFilter.trim().toLowerCase();
+      const matchCat = catFilter === "All" || pCat === fCat;
       const matchSearch =
         p.title.toLowerCase().includes(search.toLowerCase()) ||
         p.description?.toLowerCase().includes(search.toLowerCase()) ||
@@ -779,9 +782,14 @@ function ProjectsTab({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-xl font-bold text-foreground">Portfolio Projects</h2>
-          <p className="text-xs text-muted-foreground">
-            Manage projects shown on the portfolio page and the 360 Digital Solution section.
+          <div className="flex items-center gap-2">
+            <h2 className="font-display text-xl font-bold text-foreground">Portfolio Projects</h2>
+            <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+              {projects.length} Total
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Manage projects shown on the portfolio page and the 360° Digital Solution section.
           </p>
         </div>
         <button onClick={onAddNew} className="btn btn-gradient btn-sm self-start sm:self-auto">

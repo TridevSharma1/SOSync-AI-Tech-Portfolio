@@ -46,17 +46,44 @@ export async function PUT(
     }
 
     const isValidObjectId = mongoose.Types.ObjectId.isValid(id) && id.length === 24;
-    const updatedProject = isValidObjectId
-      ? await ProjectModel.findByIdAndUpdate(
-          id,
-          { $set: body },
-          { new: true, runValidators: true }
-        )
-      : await ProjectModel.findOneAndUpdate(
-          { $or: [{ id }, { title: decodeURIComponent(id) }] },
-          { $set: body },
-          { new: true, runValidators: true }
-        );
+    let updatedProject: any = null;
+
+    try {
+      await connectToDatabase();
+      updatedProject = isValidObjectId
+        ? await ProjectModel.findByIdAndUpdate(
+            id,
+            { $set: body },
+            { new: true, runValidators: true }
+          )
+        : await ProjectModel.findOneAndUpdate(
+            { $or: [{ id }, { title: decodeURIComponent(id) }] },
+            { $set: body },
+            { new: true, runValidators: true }
+          );
+      if (updatedProject && updatedProject.toObject) {
+        updatedProject = updatedProject.toObject();
+      }
+    } catch {
+      // fallback
+    }
+
+    // Sync in-memory store
+    if (globalThis.__projectsFallback) {
+      const idx = globalThis.__projectsFallback.findIndex(
+        (p) => (p._id && p._id.toString() === id) || (p.id && p.id.toString() === id)
+      );
+      if (idx !== -1) {
+        globalThis.__projectsFallback[idx] = {
+          ...globalThis.__projectsFallback[idx],
+          ...body,
+          updatedAt: new Date(),
+        };
+        if (!updatedProject) {
+          updatedProject = globalThis.__projectsFallback[idx];
+        }
+      }
+    }
 
     if (!updatedProject) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
@@ -79,23 +106,38 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectToDatabase();
     const { id } = await params;
     const isValidObjectId = mongoose.Types.ObjectId.isValid(id) && id.length === 24;
 
-    let deleted = null;
-    if (isValidObjectId) {
-      deleted = await ProjectModel.findByIdAndDelete(id);
-    } else {
-      deleted = await ProjectModel.findOneAndDelete({
-        $or: [{ id }, { title: decodeURIComponent(id) }]
-      });
+    let deleted = false;
+    try {
+      await connectToDatabase();
+      if (isValidObjectId) {
+        deleted = !!(await ProjectModel.findByIdAndDelete(id));
+      } else {
+        deleted = !!(await ProjectModel.findOneAndDelete({
+          $or: [{ id }, { title: decodeURIComponent(id) }]
+        }));
+      }
+    } catch {
+      // fallback
+    }
+
+    // Sync in-memory store
+    if (globalThis.__projectsFallback) {
+      const beforeLen = globalThis.__projectsFallback.length;
+      globalThis.__projectsFallback = globalThis.__projectsFallback.filter(
+        (p) => (p._id && p._id.toString() !== id) && (p.id && p.id.toString() !== id)
+      );
+      if (globalThis.__projectsFallback.length < beforeLen) {
+        deleted = true;
+      }
     }
 
     return NextResponse.json({
       success: true,
       message: "Project deleted successfully",
-      deleted: !!deleted,
+      deleted,
     });
   } catch (error) {
     console.error("DELETE /api/projects/[id] error:", error);

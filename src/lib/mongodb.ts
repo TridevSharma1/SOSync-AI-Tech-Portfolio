@@ -62,33 +62,13 @@ export async function connectToDatabase() {
 async function seedDatabaseIfNeeded() {
   try {
     // Import models via relative path
-    const { ProjectModel, Story360Model, SiteSettingsModel } =
+    const { Story360Model, SiteSettingsModel } =
       await import("../models");
 
-    // 1. Remove all initial dummy projects from database so only real admin projects remain
-    const dummyProjectPatterns = [
-      /phoolrani sarees/i,
-      /sp art hubs/i,
-      /karyon college/i,
-      /sonai residential/i,
-      /sonai school/i,
-      /erudition infinite/i,
-      /suraj naturo/i,
-      /finsight ai/i,
-      /medicare\+/i,
-      /salessync crm/i,
-      /manufactpro erp/i,
-      /nova brand identity/i,
-      /pixelcraft/i,
-      /shopverse/i,
-      /edulearn/i,
-    ];
-    await ProjectModel.deleteMany({ title: { $in: dummyProjectPatterns } });
-
-    // 2. Remove dummy placeholder 360 slides
+    // 1. Remove dummy placeholder 360 slides
     await Story360Model.deleteMany({ src: { $regex: /^\/about-story-slide-/ } });
 
-    // 3. Seed Settings if missing
+    // 2. Seed Settings if missing
     const settingsCount = await SiteSettingsModel.countDocuments();
     if (settingsCount === 0) {
       await SiteSettingsModel.create({
