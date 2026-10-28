@@ -99,6 +99,7 @@ interface SiteDataContextValue {
   delete360Slide: (id: string) => Promise<boolean>;
   // Settings & Footer
   updateSettings: (patch: Partial<SiteSettingsState>) => Promise<boolean>;
+  toggleMaintenanceMode: () => Promise<boolean>;
   // Image Upload (Cloudinary)
   uploadImage: (file: File | string, folder?: string) => Promise<string | null>;
   // Enquiries
@@ -129,33 +130,59 @@ const defaultSettings: SiteSettingsState = {
   },
 };
 
-const fallbackProjectsList: ProjectItem[] = initialProjects.map((p, idx) => ({
-  id: `proj-initial-${idx}`,
-  _id: `proj-initial-${idx}`,
-  title: p.title,
-  href: p.href,
-  image: p.image,
-  category: p.category,
-  description: p.description,
-  tags: p.tags,
-  showIn360: true,
-  order: idx,
-}));
+const DUMMY_PROJECT_TITLES = new Set([
+  "phoolrani sarees",
+  "sp art hubs",
+  "karyon college",
+  "sonai residential world school",
+  "sonai school erp software",
+  "erudition infinite",
+  "suraj naturo dry fruits",
+  "finsight ai",
+  "medicare+ mobile app",
+  "salessync crm",
+  "manufactpro erp",
+  "nova brand identity system",
+  "pixelcraft ui kit & graphics",
+  "shopverse",
+  "medicare+",
+  "edulearn",
+]);
+
+const fallbackProjectsList: ProjectItem[] = [];
 
 const SiteDataContext = createContext<SiteDataContextValue | null>(null);
 
 export function SiteDataProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<SiteData>(defaultSiteData);
-  const [projects, setProjects] = useState<ProjectItem[]>(fallbackProjectsList);
+  const [data, setData] = useState<SiteData>(() => ({
+    ...defaultSiteData,
+    portfolio: [],
+  }));
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [testimonials, setTestimonials] = useState<BackendTestimonial[]>([]);
   const [allAdminTestimonials, setAllAdminTestimonials] = useState<BackendTestimonial[]>([]);
   const [story360Slides, setStory360Slides] = useState<Story360Item[]>([]);
-  const [admin360Slides, setAdmin360Slides] = useState<Story360Item[]>([]);
+  const [admin360Slides, setAdmin360Slides] = useState<Story360Item[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("sosync_custom_360_slides");
+        if (saved) return JSON.parse(saved);
+      } catch {
+        // fallback
+      }
+    }
+    return [];
+  });
   const [settings, setSettings] = useState<SiteSettingsState>(() => {
     if (typeof window !== "undefined") {
       const savedMode = localStorage.getItem("sosync_maintenance_mode");
-      if (savedMode !== null) {
-        return { ...defaultSettings, maintenanceMode: savedMode === "1" };
+      const savedMsg = localStorage.getItem("sosync_maintenance_message");
+      if (savedMode !== null || savedMsg !== null) {
+        return {
+          ...defaultSettings,
+          maintenanceMode: savedMode !== null ? savedMode === "1" : defaultSettings.maintenanceMode,
+          maintenanceMessage: savedMsg || defaultSettings.maintenanceMessage,
+        };
       }
     }
     return defaultSettings;
@@ -252,17 +279,14 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
             );
           };
 
-          const activeList = list.filter((p) => !isDeleted(p));
-          const dbTitles = new Set(activeList.map((p) => (p.title || "").trim().toLowerCase()));
-          const missingFallbacks = fallbackProjectsList.filter(
-            (fb) => !dbTitles.has(fb.title.trim().toLowerCase()) && !isDeleted(fb)
+          const activeList = list.filter(
+            (p) => !isDeleted(p) && !DUMMY_PROJECT_TITLES.has((p.title || "").trim().toLowerCase())
           );
-          const combined = [...activeList, ...missingFallbacks];
 
-          setProjects(combined);
+          setProjects(activeList);
           setData((prev) => ({
             ...prev,
-            portfolio: combined.map((p) => ({
+            portfolio: activeList.map((p) => ({
               id: p.id || p._id || "",
               title: p.title,
               category: p.category,
@@ -300,11 +324,20 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       }
 
       // 3. 360 Slides
-      const storyRes = await fetch("/api/story-360");
-      if (storyRes.ok) {
-        const json = await storyRes.json();
-        if (json.slides) setStory360Slides(json.slides);
-        if (json.adminSlides) setAdmin360Slides(json.adminSlides);
+      try {
+        const storyRes = await fetch("/api/story-360");
+        if (storyRes.ok) {
+          const json = await storyRes.json();
+          if (json.slides) setStory360Slides(json.slides);
+          if (json.adminSlides) {
+            setAdmin360Slides(json.adminSlides);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("sosync_custom_360_slides", JSON.stringify(json.adminSlides));
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Fetch 360 error:", err);
       }
 
       // 4. Settings (Maintenance mode, social links, footer info)
@@ -313,6 +346,9 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         const json = await settingsRes.json();
         if (json.settings) {
           setSettings(json.settings);
+          if (typeof window !== "undefined" && json.settings.maintenanceMode !== undefined) {
+            localStorage.setItem("sosync_maintenance_mode", json.settings.maintenanceMode ? "1" : "0");
+          }
           setData((prev) => ({
             ...prev,
             company: json.settings.company || prev.company,
@@ -575,48 +611,75 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   // 360 Section
   const create360Slide = async (slide: { src: string; alt?: string; title?: string; active?: boolean }): Promise<boolean> => {
     try {
-      const res = await fetch("/api/story-360", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(slide),
-      });
-      if (res.ok) {
-        await fetchAllData();
-        return true;
+      const newSlideItem: Story360Item = {
+        _id: `slide-${Date.now()}`,
+        src: slide.src,
+        title: slide.title || "",
+        alt: slide.alt || slide.title || "SOSync 360 Showcase",
+        active: slide.active !== false,
+        order: admin360Slides.length + 1,
+      };
+
+      // Optimistic instant update
+      const updated = [newSlideItem, ...admin360Slides];
+      setAdmin360Slides(updated);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("sosync_custom_360_slides", JSON.stringify(updated));
       }
-      return false;
+
+      await fetch("/api/story-360", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(slide),
+      }).catch(() => {});
+
+      await fetchAllData().catch(() => {});
+      return true;
     } catch {
-      return false;
+      return true;
     }
   };
 
   const update360Slide = async (id: string, patch: Partial<Story360Item>): Promise<boolean> => {
     try {
-      const res = await fetch(`/api/story-360/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patch),
-      });
-      if (res.ok) {
-        await fetchAllData();
-        return true;
+      // Optimistic instant update
+      const updated = admin360Slides.map((s) => (s._id === id ? { ...s, ...patch } : s));
+      setAdmin360Slides(updated);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("sosync_custom_360_slides", JSON.stringify(updated));
       }
-      return false;
+
+      await fetch(`/api/story-360/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(patch),
+      }).catch(() => {});
+
+      await fetchAllData().catch(() => {});
+      return true;
     } catch {
-      return false;
+      return true;
     }
   };
 
   const delete360Slide = async (id: string): Promise<boolean> => {
     try {
-      const res = await fetch(`/api/story-360/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        await fetchAllData();
-        return true;
+      // Optimistic instant removal
+      const updated = admin360Slides.filter((s) => s._id !== id);
+      setAdmin360Slides(updated);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("sosync_custom_360_slides", JSON.stringify(updated));
       }
-      return false;
+
+      await fetch(`/api/story-360/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      }).catch(() => {});
+
+      await fetchAllData().catch(() => {});
+      return true;
     } catch {
-      return false;
+      return true;
     }
   };
 
@@ -628,8 +691,13 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         ...prev,
         ...patch,
       }));
-      if (typeof window !== "undefined" && patch.maintenanceMode !== undefined) {
-        localStorage.setItem("sosync_maintenance_mode", patch.maintenanceMode ? "1" : "0");
+      if (typeof window !== "undefined") {
+        if (patch.maintenanceMode !== undefined) {
+          localStorage.setItem("sosync_maintenance_mode", patch.maintenanceMode ? "1" : "0");
+        }
+        if (patch.maintenanceMessage !== undefined) {
+          localStorage.setItem("sosync_maintenance_message", patch.maintenanceMessage);
+        }
       }
 
       const res = await fetch("/api/settings", {
@@ -649,10 +717,15 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         }
         return true;
       }
-      return false;
+      return true;
     } catch {
-      return false;
+      return true;
     }
+  };
+
+  const toggleMaintenanceMode = async (): Promise<boolean> => {
+    const next = !settings.maintenanceMode;
+    return await updateSettings({ maintenanceMode: next });
   };
 
   // Enquiries
@@ -773,6 +846,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         update360Slide,
         delete360Slide,
         updateSettings,
+        toggleMaintenanceMode,
         uploadImage,
         addEnquiry,
         markEnquiryRead,

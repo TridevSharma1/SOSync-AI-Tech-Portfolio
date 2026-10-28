@@ -1,8 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useSiteData } from "@/context/SiteDataContext";
-import { PROJECTS as FALLBACK_PROJECTS } from "@/data/initialProjects";
+
+const DUMMY_PROJECT_TITLES = new Set([
+  "phoolrani sarees",
+  "sp art hubs",
+  "karyon college",
+  "sonai residential world school",
+  "sonai school erp software",
+  "erudition infinite",
+  "suraj naturo dry fruits",
+  "finsight ai",
+  "medicare+ mobile app",
+  "salessync crm",
+  "manufactpro erp",
+  "nova brand identity system",
+  "pixelcraft ui kit & graphics",
+  "shopverse",
+  "medicare+",
+  "edulearn",
+]);
 
 const CATEGORIES = [
   "All",
@@ -20,22 +38,29 @@ export function RecentProjectsSection() {
   const { projects } = useSiteData();
   const [activeCategory, setActiveCategory] = useState<string>("All");
 
-  const projectList = projects && projects.length > 0 ? projects : FALLBACK_PROJECTS;
+  // Only real projects created by admin — all dummy template projects completely removed
+  const projectList = useMemo(() => {
+    return (projects || []).filter(
+      (p) => !DUMMY_PROJECT_TITLES.has((p.title || "").trim().toLowerCase())
+    );
+  }, [projects]);
 
-  const filtered = projectList.filter((p) => {
-    if (activeCategory === "All") return true;
-    const cat = (p.category || "").toLowerCase();
-    const act = activeCategory.toLowerCase();
-    if (activeCategory === "ERP") return cat.includes("erp");
-    if (activeCategory === "Websites") return cat.includes("web") || cat.includes("learning");
-    if (activeCategory === "CRM") return cat.includes("crm");
-    if (activeCategory === "AI Projects") return cat.includes("ai");
-    if (activeCategory === "Mobile Apps") return cat.includes("mobile") || cat.includes("app");
-    if (activeCategory === "Graphic Design") return cat.includes("graphic") || cat.includes("design");
-    if (activeCategory === "Branding") return cat.includes("brand");
-    if (activeCategory === "E-Commerce") return cat.includes("commerce");
-    return cat === act;
-  });
+  const filtered = useMemo(() => {
+    return projectList.filter((p) => {
+      if (activeCategory === "All") return true;
+      const cat = (p.category || "").toLowerCase();
+      const act = activeCategory.toLowerCase();
+      if (activeCategory === "ERP") return cat.includes("erp");
+      if (activeCategory === "Websites") return cat.includes("web") || cat.includes("learning");
+      if (activeCategory === "CRM") return cat.includes("crm");
+      if (activeCategory === "AI Projects") return cat.includes("ai");
+      if (activeCategory === "Mobile Apps") return cat.includes("mobile") || cat.includes("app");
+      if (activeCategory === "Graphic Design") return cat.includes("graphic") || cat.includes("design");
+      if (activeCategory === "Branding") return cat.includes("brand");
+      if (activeCategory === "E-Commerce") return cat.includes("commerce");
+      return cat === act;
+    });
+  }, [projectList, activeCategory]);
 
   return (
     <section className="container-px mx-auto max-w-7xl py-12 sm:py-16">
@@ -60,7 +85,7 @@ export function RecentProjectsSection() {
             key={cat}
             type="button"
             onClick={() => setActiveCategory(cat)}
-            className={`rounded-full px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
+            className={`rounded-full px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer ${
               activeCategory === cat
                 ? "bg-gradient-brand text-primary-foreground shadow-soft"
                 : "border border-border bg-white text-foreground/70 hover:border-primary hover:text-primary"
@@ -71,75 +96,82 @@ export function RecentProjectsSection() {
         ))}
       </div>
 
-      {/* Grid matching live site */}
-      <div className="mt-12 sm:mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Grid */}
+      <div className="mt-12 sm:mt-14">
         {filtered.length > 0 ? (
-          filtered.map((item, idx) => (
-            <div key={item.title || idx}>
-              <a
-                href={item.href || "#"}
-                target="_blank"
-                rel="noreferrer"
-                className="group block overflow-hidden rounded-3xl border border-border bg-white shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant"
-              >
-                {/* Image + Top-Left Category Badge */}
-                <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                  <img
-                    alt={item.title}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    src={item.image}
-                  />
-                  <div className="absolute left-4 top-4 flex flex-wrap gap-2 pointer-events-none">
-                    <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-primary backdrop-blur-md shadow-xs">
-                      {item.category}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Card Content */}
-                <div className="p-6">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                      {item.title}
-                    </h3>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="lucide lucide-arrow-up-right mt-1 h-5 w-5 shrink-0 text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
-                      aria-hidden="true"
-                    >
-                      <path d="M7 7h10v10" />
-                      <path d="M7 17 17 7" />
-                    </svg>
-                  </div>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-2">
-                    {item.description}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {item.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full border border-border bg-surface-soft px-2.5 py-1 text-xs font-medium text-foreground/70"
-                      >
-                        {tag}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((item, idx) => (
+              <div key={item._id || item.id || item.title || idx}>
+                <a
+                  href={item.href || "#"}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group block overflow-hidden rounded-3xl border border-border bg-white shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant"
+                >
+                  {/* Image + Top-Left Category Badge */}
+                  <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                    <img
+                      alt={item.title}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      src={item.image}
+                    />
+                    <div className="absolute left-4 top-4 flex flex-wrap gap-2 pointer-events-none">
+                      <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-primary backdrop-blur-md shadow-xs">
+                        {item.category}
                       </span>
-                    ))}
+                    </div>
                   </div>
-                </div>
-              </a>
-            </div>
-          ))
+
+                  {/* Card Content */}
+                  <div className="p-6">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {item.title}
+                      </h3>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-arrow-up-right mt-1 h-5 w-5 shrink-0 text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
+                        aria-hidden="true"
+                      >
+                        <path d="M7 7h10v10" />
+                        <path d="M7 17 17 7" />
+                      </svg>
+                    </div>
+                    {item.description && (
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+                        {item.description}
+                      </p>
+                    )}
+                    {item.tags && item.tags.length > 0 && (
+                      <div className="mt-4 flex flex-wrap gap-1.5">
+                        {item.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-full border border-border bg-surface-soft px-2.5 py-1 text-xs font-medium text-foreground/70"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </a>
+              </div>
+            ))}
+          </div>
         ) : (
-          <div className="col-span-full py-16 text-center text-muted-foreground">
-            No projects found in this category.
+          <div className="card-soft p-12 bg-white text-center rounded-3xl border border-slate-200">
+            <p className="text-base font-semibold text-slate-700">No projects found in this category.</p>
+            <p className="text-xs text-muted-foreground mt-1">Projects added from the admin portal will appear here.</p>
           </div>
         )}
       </div>

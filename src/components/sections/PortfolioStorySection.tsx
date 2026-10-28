@@ -1,8 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSiteData } from "@/context/SiteDataContext";
+
+const INITIAL_PROJECT_TITLES = new Set([
+  "phoolrani sarees",
+  "sp art hubs",
+  "karyon college",
+  "sonai residential world school",
+  "sonai school erp software",
+  "erudition infinite",
+  "suraj naturo dry fruits",
+  "finsight ai",
+  "medicare+ mobile app",
+  "salessync crm",
+  "manufactpro erp",
+  "nova brand identity system",
+  "pixelcraft ui kit & graphics",
+]);
 
 const DEFAULT_SLIDES = [
   { src: "/about-story-slide-2.jpg", alt: "SOSync AI Tech Executive Leadership", title: "Executive Leadership" },
@@ -19,13 +35,71 @@ const CAPABILITIES = [
   "Multimedia & Influencer Marketing",
 ] as const;
 
-export function PortfolioStorySection() {
-  const { story360Slides } = useSiteData();
+export function PortfolioStorySection({ className = "" }: { className?: string } = {}) {
+  const { story360Slides, admin360Slides, projects } = useSiteData();
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Use dynamic slides from MongoDB if available, otherwise fallback to defaults
-  const slides = story360Slides && story360Slides.length > 0 ? story360Slides : DEFAULT_SLIDES;
+  // Strictly show ONLY:
+  // 1. Images added by admin in 360 digital section (Story360)
+  // 2. Project images (projects with showIn360 enabled, excluding dummy template projects)
+  const slides = useMemo(() => {
+    // 1. Custom 360 images added by admin
+    const custom = (admin360Slides || [])
+      .filter((s) => s.active !== false && s.src && !s.src.startsWith("/about-story-slide-"))
+      .map((s) => ({
+        _id: s._id,
+        src: s.src,
+        alt: s.alt || s.title || "SOSync 360 Digital Solution",
+        title: s.title || "",
+        isProject: false,
+      }));
+
+    // Check if real admin projects exist
+    const hasAdminProjects = (projects || []).some((p) => {
+      const t = (p.title || "").trim().toLowerCase();
+      return !INITIAL_PROJECT_TITLES.has(t);
+    });
+
+    // 2. Project images with showIn360 enabled
+    const projectItems = (projects || [])
+      .filter((p) => {
+        if (p.showIn360 === false) return false;
+        const t = (p.title || "").trim().toLowerCase();
+        // Exclude initial template dummy projects if real admin projects exist
+        if (hasAdminProjects && INITIAL_PROJECT_TITLES.has(t)) {
+          return false;
+        }
+        return Boolean(p.image);
+      })
+      .map((p) => ({
+        _id: `proj-${p._id || p.id}`,
+        src: p.image,
+        alt: `${p.title} — ${p.category}`,
+        title: p.title,
+        isProject: true,
+        projectHref: p.href,
+      }));
+
+    // Combine: 360 images added by admin + Project images
+    const combined = [...custom, ...projectItems];
+
+    if (combined.length > 0) {
+      return combined;
+    }
+
+    // Fallback: If story360Slides from API exists and has non-dummy slides
+    if (story360Slides && story360Slides.length > 0) {
+      const filtered = story360Slides.filter(
+        (s) => s.src && !s.src.startsWith("/about-story-slide-")
+      );
+      if (filtered.length > 0) return filtered;
+      return story360Slides;
+    }
+
+    return DEFAULT_SLIDES;
+  }, [admin360Slides, projects, story360Slides]);
+
   const currentSlide = slides[activeSlide % slides.length] || slides[0] || DEFAULT_SLIDES[0];
 
   // Auto-slide effect (advances every 3.5 seconds, pauses on hover/touch)
@@ -41,7 +115,7 @@ export function PortfolioStorySection() {
   const nextSlide = () => setActiveSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
 
   return (
-    <section className="section-pad relative overflow-hidden bg-background">
+    <section className={`pt-2 sm:pt-3 pb-12 sm:pb-16 lg:pb-20 relative overflow-hidden bg-background ${className}`.trim()}>
       <div className="dot-grid absolute inset-0 opacity-40" aria-hidden="true" />
       <div className="container-site relative">
         <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-16">
@@ -237,7 +311,7 @@ export function PortfolioStorySection() {
                 href="/portfolio"
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-semibold text-foreground hover:border-primary hover:text-primary transition-all text-center"
               >
-                Explore Projects ({slides.length})
+                Explore Projects ({projects.length})
               </Link>
             </div>
           </div>

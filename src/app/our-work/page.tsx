@@ -14,7 +14,7 @@ export default function OurWorkPage() {
   return (
     <>
       <Navbar lightTop />
-      <main className="pt-16 sm:pt-20">
+      <main className="pt-14 sm:pt-16">
         <PortfolioStorySection />
         <RecentProjectsSection />
       </main>

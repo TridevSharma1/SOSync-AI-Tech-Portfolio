@@ -3,10 +3,33 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { ProjectModel } from "@/models/Project";
 import { isAuthenticatedAdmin } from "@/lib/auth";
 
+const DUMMY_PROJECT_TITLES = new Set([
+  "phoolrani sarees",
+  "sp art hubs",
+  "karyon college",
+  "sonai residential world school",
+  "sonai school erp software",
+  "erudition infinite",
+  "suraj naturo dry fruits",
+  "finsight ai",
+  "medicare+ mobile app",
+  "salessync crm",
+  "manufactpro erp",
+  "nova brand identity system",
+  "pixelcraft ui kit & graphics",
+  "shopverse",
+  "medicare+",
+  "edulearn",
+]);
+
 export async function GET() {
   try {
     await connectToDatabase();
-    const projects = await ProjectModel.find({}).sort({ order: 1, createdAt: -1 });
+    const rawProjects = await ProjectModel.find({}).sort({ order: 1, createdAt: -1 });
+    // Filter out any dummy projects so only real projects added by admin appear
+    const projects = rawProjects.filter(
+      (p) => !DUMMY_PROJECT_TITLES.has((p.title || "").trim().toLowerCase())
+    );
     return NextResponse.json({ success: true, projects });
   } catch (error) {
     console.error("GET /api/projects error:", error);

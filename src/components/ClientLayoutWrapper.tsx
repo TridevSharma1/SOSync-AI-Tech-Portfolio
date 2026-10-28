@@ -1,14 +1,15 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useSiteData } from "@/context/SiteDataContext";
 import { MaintenanceScreen } from "@/components/MaintenanceScreen";
 
 export function ClientLayoutWrapper({ children }: { children: ReactNode }) {
-  const { settings, isAdmin, authReady } = useSiteData();
+  const { settings, isAdmin, authReady, toggleMaintenanceMode } = useSiteData();
   const pathname = usePathname();
+  const [toggling, setToggling] = useState(false);
 
   const isAdminRoute = pathname.startsWith("/admin");
   const isPreview = typeof window !== "undefined" && window.location.search.includes("preview_maintenance=true");
@@ -22,11 +23,26 @@ export function ClientLayoutWrapper({ children }: { children: ReactNode }) {
     <>
       {/* Admin Maintenance Banner */}
       {isAdmin && settings.maintenanceMode && !isAdminRoute && (
-        <div className="bg-amber-500 text-slate-950 px-4 py-2 text-center text-xs sm:text-sm font-bold sticky top-0 z-[100] shadow-md flex items-center justify-center gap-2">
+        <div className="bg-amber-500 text-slate-950 px-4 py-2 text-center text-xs sm:text-sm font-bold sticky top-0 z-[100] shadow-md flex flex-wrap items-center justify-center gap-2">
           <span>⚠️ Maintenance Mode is currently ACTIVE — Public visitors are seeing the maintenance screen.</span>
+          <button
+            type="button"
+            disabled={toggling}
+            onClick={async () => {
+              setToggling(true);
+              try {
+                await toggleMaintenanceMode();
+              } finally {
+                setToggling(false);
+              }
+            }}
+            className="cursor-pointer bg-slate-950 text-white px-3 py-0.5 rounded-full text-xs font-bold hover:bg-slate-900 transition-colors shadow-xs disabled:opacity-50"
+          >
+            {toggling ? "Turning OFF..." : "Turn OFF Now"}
+          </button>
           <Link
             href="/admin"
-            className="underline ml-2 bg-slate-950 text-white px-2.5 py-0.5 rounded-full text-xs hover:bg-slate-900"
+            className="underline ml-1 text-slate-950 hover:text-black text-xs font-semibold"
           >
             Manage in Admin
           </Link>
@@ -34,7 +50,7 @@ export function ClientLayoutWrapper({ children }: { children: ReactNode }) {
             href="/?preview_maintenance=true"
             target="_blank"
             rel="noreferrer"
-            className="underline ml-1 bg-amber-700 text-white px-2.5 py-0.5 rounded-full text-xs hover:bg-amber-800"
+            className="ml-1 bg-amber-700 text-white px-2.5 py-0.5 rounded-full text-xs hover:bg-amber-800 transition-colors"
           >
             Preview Screen ↗
           </a>

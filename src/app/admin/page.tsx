@@ -42,6 +42,7 @@ export default function AdminDashboard() {
     update360Slide,
     delete360Slide,
     updateSettings,
+    toggleMaintenanceMode,
     uploadImage,
     markEnquiryRead,
     deleteEnquiry,
@@ -49,6 +50,26 @@ export default function AdminDashboard() {
 
   const router = useRouter();
   const [tab, setTab] = useState<AdminTab>("overview");
+  const [togglingMaintenance, setTogglingMaintenance] = useState(false);
+
+  const handleQuickToggleMaintenance = async () => {
+    setTogglingMaintenance(true);
+    try {
+      const nextMode = !settings.maintenanceMode;
+      const ok = await updateSettings({ maintenanceMode: nextMode });
+      if (ok) {
+        showToast(
+          nextMode
+            ? "Maintenance Mode Turned ON! (Public site is hidden)"
+            : "Maintenance Mode Turned OFF! (Public site is LIVE)"
+        );
+      } else {
+        showToast("Could not update maintenance mode. Please try again.");
+      }
+    } finally {
+      setTogglingMaintenance(false);
+    }
+  };
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Modals state
@@ -163,18 +184,43 @@ export default function AdminDashboard() {
           ))}
         </nav>
 
-        {/* Maintenance Mode Quick Indicator */}
+        {/* Maintenance Mode Quick Button */}
         <div className="mt-auto border-t border-white/10 pt-4">
-          <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-navy-soft/60">
-            <span className="text-xs text-slate-300">Maintenance</span>
+          <button
+            type="button"
+            onClick={handleQuickToggleMaintenance}
+            disabled={togglingMaintenance}
+            title={
+              settings.maintenanceMode
+                ? "Maintenance is ON (Public site is hidden). Click to turn OFF."
+                : "Maintenance is OFF (Public site is LIVE). Click to turn ON."
+            }
+            className={`w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all cursor-pointer border text-left ${
+              settings.maintenanceMode
+                ? "bg-amber-500/20 border-amber-500/40 hover:bg-amber-500/30 text-amber-300 shadow-sm"
+                : "bg-navy-soft/60 border-white/10 hover:bg-navy-soft text-slate-300 hover:text-white"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <span
+                className={`size-2.5 rounded-full transition-all ${
+                  settings.maintenanceMode ? "bg-amber-400 animate-pulse" : "bg-emerald-400"
+                }`}
+              />
+              <span className="text-xs font-semibold">
+                {togglingMaintenance ? "Saving..." : "Maintenance"}
+              </span>
+            </div>
             <span
-              className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                settings.maintenanceMode ? "bg-amber-500/20 text-amber-400" : "bg-emerald-500/20 text-emerald-400"
+              className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider transition-colors ${
+                settings.maintenanceMode
+                  ? "bg-amber-400 text-slate-950 shadow-xs"
+                  : "bg-emerald-500/20 text-emerald-400 group-hover:bg-emerald-500/30"
               }`}
             >
               {settings.maintenanceMode ? "ACTIVE" : "OFF"}
             </span>
-          </div>
+          </button>
         </div>
       </aside>
 
@@ -203,6 +249,35 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleQuickToggleMaintenance}
+              disabled={togglingMaintenance}
+              title={
+                settings.maintenanceMode
+                  ? "Maintenance Mode is ACTIVE (Visitors see maintenance screen). Click to make site LIVE."
+                  : "Maintenance Mode is OFF (Site is LIVE). Click to enable maintenance screen."
+              }
+              className={`inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold transition-all border shadow-xs cursor-pointer disabled:opacity-50 ${
+                settings.maintenanceMode
+                  ? "bg-amber-500 text-slate-950 border-amber-600 hover:bg-amber-400 shadow-amber-500/20"
+                  : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              <span
+                className={`size-2 rounded-full ${
+                  settings.maintenanceMode ? "bg-slate-950 animate-ping" : "bg-emerald-500"
+                }`}
+              />
+              <span>
+                {togglingMaintenance
+                  ? "Updating..."
+                  : settings.maintenanceMode
+                  ? "Maintenance: ON"
+                  : "Maintenance: OFF"}
+              </span>
+            </button>
+
             <Link
               href="/"
               target="_blank"
@@ -234,6 +309,8 @@ export default function AdminDashboard() {
               unreadEnquiries={unreadEnquiries}
               maintenanceMode={settings.maintenanceMode}
               onNavigate={setTab}
+              onToggleMaintenance={handleQuickToggleMaintenance}
+              togglingMaintenance={togglingMaintenance}
             />
           )}
 
@@ -259,6 +336,8 @@ export default function AdminDashboard() {
           {tab === "story360" && (
             <Story360Tab
               slides={admin360Slides}
+              projects={projects}
+              onNavigate={setTab}
               onAddNew={() => setSlideModal({ open: true, mode: "add" })}
               onView={(s) => setViewSlide(s)}
               onToggleActive={async (slide) => {
@@ -266,7 +345,7 @@ export default function AdminDashboard() {
                 if (ok) showToast(`Slide marked ${!slide.active ? "Active" : "Inactive"}`);
               }}
               onDelete={async (id) => {
-                if (confirm("Delete this 360 showcase image?")) {
+                if (window.confirm("Are you sure you want to delete this 360 showcase image?")) {
                   const ok = await delete360Slide(id);
                   if (ok) showToast("Slide deleted");
                 }
@@ -501,6 +580,8 @@ function OverviewTab({
   unreadEnquiries,
   maintenanceMode,
   onNavigate,
+  onToggleMaintenance,
+  togglingMaintenance,
 }: {
   projectsCount: number;
   testimonialsCount: number;
@@ -510,6 +591,8 @@ function OverviewTab({
   unreadEnquiries: number;
   maintenanceMode: boolean;
   onNavigate: (t: AdminTab) => void;
+  onToggleMaintenance?: () => void;
+  togglingMaintenance?: boolean;
 }) {
   const cards = [
     {
@@ -552,22 +635,35 @@ function OverviewTab({
     <div className="space-y-8">
       {/* Maintenance alert if active */}
       {maintenanceMode && (
-        <div className="rounded-2xl bg-amber-500/15 border border-amber-500/30 p-5 flex items-center justify-between">
+        <div className="rounded-2xl bg-amber-500/15 border border-amber-500/30 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="size-3 rounded-full bg-amber-500 animate-ping" />
+            <span className="size-3 rounded-full bg-amber-500 animate-ping shrink-0" />
             <div>
               <h3 className="font-bold text-amber-900 text-sm">Maintenance Mode is ON</h3>
               <p className="text-xs text-amber-800">
-                Regular visitors are seeing the maintenance page. You can turn this off under Settings.
+                Regular visitors are seeing the maintenance page. Public site is temporarily hidden.
               </p>
             </div>
           </div>
-          <button
-            onClick={() => onNavigate("settings")}
-            className="btn btn-sm bg-amber-500 text-white hover:bg-amber-600 text-xs font-bold"
-          >
-            Go to Settings
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {onToggleMaintenance && (
+              <button
+                type="button"
+                onClick={onToggleMaintenance}
+                disabled={togglingMaintenance}
+                className="btn btn-sm bg-amber-500 text-slate-950 hover:bg-amber-400 text-xs font-bold shadow-xs disabled:opacity-50 cursor-pointer"
+              >
+                {togglingMaintenance ? "Turning OFF..." : "Turn OFF Maintenance"}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => onNavigate("settings")}
+              className="btn btn-sm btn-outline border-amber-400 text-amber-900 hover:bg-amber-100 text-xs font-semibold cursor-pointer"
+            >
+              Settings
+            </button>
+          </div>
         </div>
       )}
 
@@ -623,10 +719,21 @@ function OverviewTab({
             <Icon name="check" className="size-4" /> Review Testimonials
           </button>
           <button
-            onClick={() => onNavigate("settings")}
-            className="btn btn-outline btn-sm"
+            type="button"
+            onClick={onToggleMaintenance || (() => onNavigate("settings"))}
+            disabled={togglingMaintenance}
+            className={`btn btn-sm cursor-pointer disabled:opacity-50 ${
+              maintenanceMode
+                ? "bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold border-amber-500"
+                : "btn-outline"
+            }`}
           >
-            <Icon name="settings" className="size-4" /> Toggle Maintenance Mode
+            <Icon name="settings" className="size-4" />
+            {togglingMaintenance
+              ? "Updating..."
+              : maintenanceMode
+              ? "Turn OFF Maintenance Mode"
+              : "Toggle Maintenance Mode"}
           </button>
         </div>
       </div>
@@ -811,17 +918,51 @@ function ProjectsTab({
 // -------------------------------------------------------------
 function Story360Tab({
   slides,
+  projects = [],
+  onNavigate,
   onAddNew,
   onView,
   onToggleActive,
   onDelete,
 }: {
   slides: Story360Item[];
+  projects?: ProjectItem[];
+  onNavigate?: (t: AdminTab) => void;
   onAddNew: () => void;
   onView: (s: Story360Item) => void;
   onToggleActive: (slide: Story360Item) => void;
   onDelete: (id: string) => void;
 }) {
+  const INITIAL_PROJECT_TITLES = new Set([
+    "phoolrani sarees",
+    "sp art hubs",
+    "karyon college",
+    "sonai residential world school",
+    "sonai school erp software",
+    "erudition infinite",
+    "suraj naturo dry fruits",
+    "finsight ai",
+    "medicare+ mobile app",
+    "salessync crm",
+    "manufactpro erp",
+    "nova brand identity system",
+    "pixelcraft ui kit & graphics",
+  ]);
+
+  const hasAdminProjects = projects.some((p) => {
+    const t = (p.title || "").trim().toLowerCase();
+    return !INITIAL_PROJECT_TITLES.has(t);
+  });
+
+  const projectsIn360 = projects.filter((p) => {
+    if (p.showIn360 === false) return false;
+    const t = (p.title || "").trim().toLowerCase();
+    if (hasAdminProjects && INITIAL_PROJECT_TITLES.has(t)) return false;
+    return Boolean(p.image);
+  });
+
+  // Filter out any default placeholder template assets (/about-story-slide-)
+  const customSlides = slides.filter((s) => s.src && !s.src.startsWith("/about-story-slide-"));
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -838,58 +979,119 @@ function Story360Tab({
         </button>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {slides.map((s) => (
-          <div
-            key={s._id}
-            className="card-soft overflow-hidden bg-white border border-slate-200 flex flex-col justify-between"
-          >
-            <div>
-              <div className="relative aspect-square bg-slate-100 overflow-hidden flex items-center justify-center p-3">
-                <div className="relative size-full rounded-full overflow-hidden border-4 border-slate-200 shadow-inner">
-                  <img src={s.src} alt={s.alt} className="size-full object-cover" />
-                </div>
-                <div className="absolute top-3 right-3">
-                  <button
-                    onClick={() => onToggleActive(s)}
-                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-xs ${
-                      s.active !== false
-                        ? "bg-emerald-500 text-white"
-                        : "bg-slate-300 text-slate-700"
-                    }`}
-                  >
-                    {s.active !== false ? "Active" : "Inactive"}
-                  </button>
-                </div>
-              </div>
-              <div className="p-4">
-                <h4 className="font-bold text-sm text-foreground truncate">
-                  {s.title || "Custom 360 Slide"}
-                </h4>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">{s.alt}</p>
-              </div>
-            </div>
-
-            <div className="p-3 border-t border-slate-100 flex items-center justify-between bg-slate-50">
-              <span className="text-[11px] text-slate-400">Order: {s.order || 0}</span>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => onView(s)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 hover:border-brand hover:text-brand shadow-xs"
-                >
-                  <Icon name="eye" className="size-3.5" /> View
-                </button>
-                <button
-                  onClick={() => onDelete(s._id)}
-                  className="text-xs text-red-600 hover:bg-rose-50 p-1 rounded-md flex items-center gap-1"
-                  title="Remove image"
-                >
-                  <Icon name="trash" className="size-3.5" />
-                </button>
-              </div>
-            </div>
+      {/* Custom 360 Slides Added by Admin */}
+      <div>
+        <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+          <span>Custom Images Added in 360 Section ({customSlides.length})</span>
+        </h3>
+        {customSlides.length === 0 ? (
+          <div className="card-soft p-8 bg-white border border-dashed border-slate-300 text-center rounded-2xl">
+            <p className="text-sm text-slate-500 font-medium">No custom 360 images added yet.</p>
+            <p className="text-xs text-slate-400 mt-1">Upload images specifically for the circular 360° showcase carousel.</p>
+            <button onClick={onAddNew} className="btn btn-gradient btn-sm mt-4">
+              <Icon name="plus" className="size-4" /> Add 360 Image Now
+            </button>
           </div>
-        ))}
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {customSlides.map((s) => (
+              <div
+                key={s._id}
+                className="card-soft overflow-hidden bg-white border border-slate-200 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="relative aspect-square bg-slate-100 overflow-hidden flex items-center justify-center p-3">
+                    <div className="relative size-full rounded-full overflow-hidden border-4 border-slate-200 shadow-inner">
+                      <img src={s.src} alt={s.alt} className="size-full object-cover" />
+                    </div>
+                    <div className="absolute top-3 right-3">
+                      <button
+                        onClick={() => onToggleActive(s)}
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-xs cursor-pointer ${
+                          s.active !== false
+                            ? "bg-emerald-500 text-white"
+                            : "bg-slate-300 text-slate-700"
+                        }`}
+                      >
+                        {s.active !== false ? "Active in 360" : "Inactive"}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h4 className="font-bold text-sm text-foreground truncate">
+                      {s.title || "Custom 360 Slide"}
+                    </h4>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{s.alt}</p>
+                  </div>
+                </div>
+
+                <div className="p-3 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+                  <span className="text-[11px] text-slate-400">Order: {s.order || 0}</span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => onView(s)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 hover:border-brand hover:text-brand shadow-xs"
+                    >
+                      <Icon name="eye" className="size-3.5" /> View
+                    </button>
+                    <button
+                      onClick={() => onDelete(s._id)}
+                      className="text-xs text-red-600 hover:bg-rose-50 p-1 rounded-md flex items-center gap-1 cursor-pointer"
+                      title="Remove image"
+                    >
+                      <Icon name="trash" className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Projects Displayed in 360 Section */}
+      <div className="pt-4 border-t border-slate-200">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-bold text-foreground">
+              Projects Displayed in 360° Carousel ({projectsIn360.length})
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              These project images show in the 360° circular carousel because &quot;Show in 360°&quot; is active.
+            </p>
+          </div>
+          {onNavigate && (
+            <button
+              onClick={() => onNavigate("projects")}
+              className="btn btn-outline btn-sm text-xs"
+            >
+              Manage in Projects →
+            </button>
+          )}
+        </div>
+
+        {projectsIn360.length === 0 ? (
+          <p className="text-xs text-slate-400 italic">No projects currently marked to display in 360° carousel.</p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {projectsIn360.map((p) => (
+              <div
+                key={p._id || p.id}
+                className="card-soft overflow-hidden bg-white border border-slate-200 flex items-center gap-3 p-3 rounded-2xl"
+              >
+                <div className="size-14 rounded-full overflow-hidden shrink-0 border-2 border-brand/30">
+                  <img src={p.image} alt={p.title} className="size-full object-cover" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-bold text-xs text-foreground truncate">{p.title}</h4>
+                  <span className="inline-block mt-0.5 rounded-full bg-brand/10 text-brand px-2 py-0.5 text-[10px] font-bold">
+                    360° Active
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1436,14 +1638,32 @@ function SettingsTab({
             </span>
           </div>
 
-          <a
-            href="/?preview_maintenance=true"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-brand hover:text-brand shadow-xs transition-colors shrink-0"
-          >
-            Preview Screen ↗
-          </a>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              disabled={savingMode}
+              onClick={handleToggleMaintenance}
+              className={`btn btn-sm text-xs font-bold cursor-pointer disabled:opacity-50 ${
+                maintenanceMode
+                  ? "bg-amber-600 text-white hover:bg-amber-700"
+                  : "bg-emerald-600 text-white hover:bg-emerald-700"
+              }`}
+            >
+              {savingMode
+                ? "Updating..."
+                : maintenanceMode
+                ? "Turn OFF"
+                : "Turn ON"}
+            </button>
+            <a
+              href="/?preview_maintenance=true"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-brand hover:text-brand shadow-xs transition-colors"
+            >
+              Preview Screen ↗
+            </a>
+          </div>
         </div>
 
         <div>

@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import { defaultSiteData } from "@/data";
-import { PROJECTS as initialProjects } from "@/data/initialProjects";
 
 const MONGODB_URL = process.env.MONGODB_URL;
 
@@ -41,7 +40,7 @@ export async function connectToDatabase() {
     };
 
     cached!.promise = mongoose.connect(MONGODB_URL, opts).then(async (m) => {
-      // Auto-seed initial data if collections are empty
+      // Auto-clean & auto-seed initial data if collections are empty
       if (!cached!.seeded) {
         await seedDatabaseIfNeeded();
         cached!.seeded = true;
@@ -63,61 +62,33 @@ export async function connectToDatabase() {
 async function seedDatabaseIfNeeded() {
   try {
     // Import models via relative path
-    const { ProjectModel, TestimonialModel, Story360Model, SiteSettingsModel } =
+    const { ProjectModel, Story360Model, SiteSettingsModel } =
       await import("../models");
 
-    // 1. Seed Projects (seeds any initial projects missing from DB)
-    const existingProjects = await ProjectModel.find({}, { title: 1 }).lean();
-    const existingTitles = new Set(existingProjects.map((p: any) => (p.title || "").trim().toLowerCase()));
-    const missingProjects = initialProjects.filter(
-      (p) => !existingTitles.has(p.title.trim().toLowerCase())
-    );
+    // 1. Remove all initial dummy projects from database so only real admin projects remain
+    const dummyProjectPatterns = [
+      /phoolrani sarees/i,
+      /sp art hubs/i,
+      /karyon college/i,
+      /sonai residential/i,
+      /sonai school/i,
+      /erudition infinite/i,
+      /suraj naturo/i,
+      /finsight ai/i,
+      /medicare\+/i,
+      /salessync crm/i,
+      /manufactpro erp/i,
+      /nova brand identity/i,
+      /pixelcraft/i,
+      /shopverse/i,
+      /edulearn/i,
+    ];
+    await ProjectModel.deleteMany({ title: { $in: dummyProjectPatterns } });
 
-    if (missingProjects.length > 0) {
-      const projectsToSeed = missingProjects.map((p, index) => ({
-        title: p.title,
-        href: p.href,
-        image: p.image,
-        category: p.category,
-        description: p.description,
-        tags: p.tags,
-        showIn360: true,
-        order: existingProjects.length + index,
-      }));
-      await ProjectModel.insertMany(projectsToSeed);
-      console.log(`✅ Seeded ${projectsToSeed.length} new/missing projects to MongoDB`);
-    }
+    // 2. Remove dummy placeholder 360 slides
+    await Story360Model.deleteMany({ src: { $regex: /^\/about-story-slide-/ } });
 
-    // 2. Seed Testimonials
-    const testimonialCount = await TestimonialModel.countDocuments();
-    if (testimonialCount === 0) {
-      const testimonialsToSeed = defaultSiteData.testimonials.map((t, idx) => ({
-        name: t.name,
-        company: t.company,
-        role: t.role,
-        initials: t.initials,
-        rating: t.rating,
-        review: t.review,
-        status: "approved",
-        featured: idx < 3,
-      }));
-      await TestimonialModel.insertMany(testimonialsToSeed);
-      console.log(`✅ Seeded ${testimonialsToSeed.length} testimonials to MongoDB`);
-    }
-
-    // 3. Seed 360 Slides
-    const slideCount = await Story360Model.countDocuments();
-    if (slideCount === 0) {
-      const initialSlides = [
-        { src: "/about-story-slide-2.jpg", alt: "SOSync AI Tech Executive Leadership", title: "Executive Leadership", order: 1, active: true },
-        { src: "/about-story-slide-1.jpg", alt: "SOSync AI Tech Engineers & Team", title: "Engineering Excellence", order: 2, active: true },
-        { src: "/about-story-slide-3.jpg", alt: "SOSync AI Tech Innovations", title: "AI & Cloud Innovation", order: 3, active: true },
-      ];
-      await Story360Model.insertMany(initialSlides);
-      console.log(`✅ Seeded 360 Digital Solution slides to MongoDB`);
-    }
-
-    // 4. Seed Settings
+    // 3. Seed Settings if missing
     const settingsCount = await SiteSettingsModel.countDocuments();
     if (settingsCount === 0) {
       await SiteSettingsModel.create({

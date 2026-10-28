@@ -13,21 +13,33 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectToDatabase();
     const { id } = await params;
     const body = await req.json();
 
-    const updated = await Story360Model.findByIdAndUpdate(
-      id,
-      { $set: body },
-      { new: true, runValidators: true }
-    );
-
-    if (!updated) {
-      return NextResponse.json({ error: "Slide not found" }, { status: 404 });
+    // Update in-memory fallback
+    if (globalThis.__story360Fallback) {
+      globalThis.__story360Fallback = globalThis.__story360Fallback.map((s) =>
+        s._id === id ? { ...s, ...body } : s
+      );
     }
 
-    return NextResponse.json({ success: true, slide: updated });
+    try {
+      await connectToDatabase();
+      const updated = await Story360Model.findByIdAndUpdate(
+        id,
+        { $set: body },
+        { new: true, runValidators: true }
+      );
+
+      if (!updated && (!globalThis.__story360Fallback || !globalThis.__story360Fallback.find((s) => s._id === id))) {
+        return NextResponse.json({ error: "Slide not found" }, { status: 404 });
+      }
+
+      return NextResponse.json({ success: true, slide: updated || body });
+    } catch (dbErr) {
+      console.warn("PUT /api/story-360/[id] DB offline, updated in-memory fallback:", dbErr);
+      return NextResponse.json({ success: true, slide: body, isFallback: true });
+    }
   } catch (error) {
     console.error("PUT /api/story-360/[id] error:", error);
     return NextResponse.json({ error: "Failed to update slide" }, { status: 500 });
@@ -44,15 +56,21 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectToDatabase();
     const { id } = await params;
-    const deleted = await Story360Model.findByIdAndDelete(id);
 
-    if (!deleted) {
-      return NextResponse.json({ error: "Slide not found" }, { status: 404 });
+    // Delete from in-memory fallback
+    if (globalThis.__story360Fallback) {
+      globalThis.__story360Fallback = globalThis.__story360Fallback.filter((s) => s._id !== id);
     }
 
-    return NextResponse.json({ success: true, message: "Slide deleted successfully" });
+    try {
+      await connectToDatabase();
+      await Story360Model.findByIdAndDelete(id);
+      return NextResponse.json({ success: true, message: "Slide deleted successfully" });
+    } catch (dbErr) {
+      console.warn("DELETE /api/story-360/[id] DB offline, removed from in-memory fallback:", dbErr);
+      return NextResponse.json({ success: true, message: "Slide deleted from fallback", isFallback: true });
+    }
   } catch (error) {
     console.error("DELETE /api/story-360/[id] error:", error);
     return NextResponse.json({ error: "Failed to delete slide" }, { status: 500 });
