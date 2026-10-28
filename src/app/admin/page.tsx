@@ -1772,8 +1772,22 @@ function ProjectFormModal({
   onUpload: (file: File | string, folder?: string) => Promise<string | null>;
   onSave: (data: any) => Promise<void>;
 }) {
+  const STANDARD_CATEGORIES = [
+    "Websites",
+    "ERP",
+    "CRM",
+    "AI Projects",
+    "Mobile Apps",
+    "Graphic Design",
+    "Branding",
+    "E-Commerce",
+    "E-Learning",
+  ];
+
+  const initialIsCustom = Boolean(initial?.category && !STANDARD_CATEGORIES.includes(initial.category));
   const [title, setTitle] = useState(initial?.title || "");
-  const [category, setCategory] = useState(initial?.category || "Websites");
+  const [category, setCategory] = useState(initialIsCustom ? "Custom" : (initial?.category || "Websites"));
+  const [customCategory, setCustomCategory] = useState(initialIsCustom ? (initial?.category || "") : "");
   const [href, setHref] = useState(initial?.href || "");
   const [image, setImage] = useState(initial?.image || "");
   const [description, setDescription] = useState(initial?.description || "");
@@ -1799,7 +1813,8 @@ function ProjectFormModal({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !image || !category) {
+    const effectiveCategory = category === "Custom" ? customCategory.trim() : category.trim();
+    if (!title || !image || !effectiveCategory) {
       alert("Please provide title, category, and an image.");
       return;
     }
@@ -1808,7 +1823,7 @@ function ProjectFormModal({
     try {
       await onSave({
         title,
-        category,
+        category: effectiveCategory,
         href,
         image,
         description,
@@ -1862,13 +1877,25 @@ function ProjectFormModal({
                 onChange={(e) => setCategory(e.target.value)}
               >
                 <option value="Websites">Websites</option>
-                <option value="ERP Website">ERP Website</option>
-                <option value="E-Commerce">E-Commerce</option>
+                <option value="ERP">ERP</option>
+                <option value="CRM">CRM</option>
                 <option value="AI Projects">AI Projects</option>
                 <option value="Mobile Apps">Mobile Apps</option>
-                <option value="E-Learning">E-Learning</option>
                 <option value="Graphic Design">Graphic Design</option>
+                <option value="Branding">Branding</option>
+                <option value="E-Commerce">E-Commerce</option>
+                <option value="E-Learning">E-Learning</option>
+                <option value="Custom">+ Custom / Other Category</option>
               </select>
+              {category === "Custom" && (
+                <input
+                  className="field mt-2"
+                  placeholder="Enter custom category name..."
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  required
+                />
+              )}
             </div>
             <div>
               <label className="label">Live Project URL</label>
