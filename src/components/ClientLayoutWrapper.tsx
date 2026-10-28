@@ -11,9 +11,10 @@ export function ClientLayoutWrapper({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const isAdminRoute = pathname.startsWith("/admin");
+  const isPreview = typeof window !== "undefined" && window.location.search.includes("preview_maintenance=true");
 
-  // Show maintenance screen to regular visitors if maintenanceMode is active
-  if (authReady && settings.maintenanceMode && !isAdmin && !isAdminRoute) {
+  // Show maintenance screen to regular visitors if maintenanceMode is active or preview requested
+  if (((authReady || typeof window !== "undefined") && settings.maintenanceMode && !isAdmin && !isAdminRoute) || isPreview) {
     return <MaintenanceScreen />;
   }
 
@@ -29,6 +30,14 @@ export function ClientLayoutWrapper({ children }: { children: ReactNode }) {
           >
             Manage in Admin
           </Link>
+          <a
+            href="/?preview_maintenance=true"
+            target="_blank"
+            rel="noreferrer"
+            className="underline ml-1 bg-amber-700 text-white px-2.5 py-0.5 rounded-full text-xs hover:bg-amber-800"
+          >
+            Preview Screen ↗
+          </a>
         </div>
       )}
       {children}

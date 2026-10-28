@@ -244,9 +244,13 @@ export default function AdminDashboard() {
               onView={(p) => setViewProject(p)}
               onEdit={(p) => setProjectModal({ open: true, mode: "edit", item: p })}
               onDelete={async (id) => {
-                if (confirm("Delete this project from MongoDB?")) {
+                if (window.confirm("Are you sure you want to delete this project?")) {
                   const ok = await deleteProject(id);
-                  if (ok) showToast("Project deleted successfully");
+                  if (ok) {
+                    showToast("Project deleted successfully");
+                  } else {
+                    showToast("Could not delete project. Please try again.");
+                  }
                 }
               }}
             />
@@ -324,7 +328,19 @@ export default function AdminDashboard() {
               settings={settings}
               onSave={async (patch) => {
                 const ok = await updateSettings(patch);
-                if (ok) showToast("Settings updated successfully!");
+                if (ok) {
+                  if (patch.maintenanceMode !== undefined) {
+                    showToast(
+                      patch.maintenanceMode
+                        ? "Maintenance Mode Turned ON! (Public site is hidden)"
+                        : "Maintenance Mode Turned OFF! (Public site is LIVE)"
+                    );
+                  } else {
+                    showToast("Settings updated successfully!");
+                  }
+                } else {
+                  showToast("Could not update settings. Please try again.");
+                }
               }}
             />
           )}
@@ -396,6 +412,17 @@ export default function AdminDashboard() {
           onEdit={(p) => {
             setViewProject(null);
             setProjectModal({ open: true, mode: "edit", item: p });
+          }}
+          onDelete={async (id) => {
+            if (window.confirm("Are you sure you want to delete this project?")) {
+              setViewProject(null);
+              const ok = await deleteProject(id);
+              if (ok) {
+                showToast("Project deleted successfully");
+              } else {
+                showToast("Could not delete project. Please try again.");
+              }
+            }
           }}
         />
       )}
@@ -1300,6 +1327,22 @@ function SettingsTab({
     settings.maintenanceMessage ||
       "SOSync AI Tech is currently undergoing scheduled platform upgrades. We will be back online shortly."
   );
+  const [savingMode, setSavingMode] = useState(false);
+  const [savingMsg, setSavingMsg] = useState(false);
+
+  useEffect(() => {
+    if (settings) {
+      if (settings.maintenanceMode !== undefined) {
+        setMaintenanceMode(Boolean(settings.maintenanceMode));
+      }
+      if (settings.maintenanceMessage) {
+        setMaintenanceMessage(settings.maintenanceMessage);
+      }
+      if (settings.social) {
+        setSocial((prev) => ({ ...prev, ...settings.social }));
+      }
+    }
+  }, [settings]);
 
   const [social, setSocial] = useState({
     linkedin: settings.social?.linkedin || "https://linkedin.com",
@@ -1308,6 +1351,34 @@ function SettingsTab({
     facebook: settings.social?.facebook || "https://facebook.com",
     github: settings.social?.github || "https://github.com",
   });
+
+  const handleToggleMaintenance = async () => {
+    const nextMode = !maintenanceMode;
+    setMaintenanceMode(nextMode);
+    setSavingMode(true);
+    try {
+      await onSave({
+        maintenanceMode: nextMode,
+        maintenanceMessage: maintenanceMessage.trim(),
+        social,
+      });
+    } finally {
+      setSavingMode(false);
+    }
+  };
+
+  const handleSaveMessage = async () => {
+    setSavingMsg(true);
+    try {
+      await onSave({
+        maintenanceMode,
+        maintenanceMessage: maintenanceMessage.trim(),
+        social,
+      });
+    } finally {
+      setSavingMsg(false);
+    }
+  };
 
   const saveSettings = () => {
     onSave({
@@ -1321,7 +1392,7 @@ function SettingsTab({
     <div className="space-y-8 max-w-3xl">
       {/* Maintenance Mode Card */}
       <div className="card-soft p-6 md:p-8 bg-white border border-slate-200 space-y-5">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <h3 className="font-display text-lg font-bold text-foreground">Website Maintenance Mode</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -1330,8 +1401,10 @@ function SettingsTab({
           </div>
           <button
             type="button"
-            onClick={() => setMaintenanceMode(!maintenanceMode)}
-            className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+            disabled={savingMode}
+            onClick={handleToggleMaintenance}
+            title={maintenanceMode ? "Click to turn OFF" : "Click to turn ON"}
+            className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
               maintenanceMode ? "bg-amber-500" : "bg-slate-300"
             }`}
           >
@@ -1344,20 +1417,33 @@ function SettingsTab({
         </div>
 
         <div
-          className={`p-4 rounded-2xl border text-xs sm:text-sm font-semibold flex items-center gap-3 ${
+          className={`p-4 rounded-2xl border text-xs sm:text-sm font-semibold flex items-center justify-between gap-3 ${
             maintenanceMode
               ? "bg-amber-50 border-amber-200 text-amber-900"
               : "bg-emerald-50 border-emerald-200 text-emerald-900"
           }`}
         >
-          <span
-            className={`size-2.5 rounded-full ${
-              maintenanceMode ? "bg-amber-500 animate-ping" : "bg-emerald-500"
-            }`}
-          />
-          {maintenanceMode
-            ? "Status: ACTIVE (Visitors see the Maintenance page)"
-            : "Status: LIVE (Public site is fully accessible)"}
+          <div className="flex items-center gap-3">
+            <span
+              className={`size-2.5 rounded-full ${
+                maintenanceMode ? "bg-amber-500 animate-ping" : "bg-emerald-500"
+              }`}
+            />
+            <span>
+              {maintenanceMode
+                ? "Status: ACTIVE (Visitors see the Maintenance page)"
+                : "Status: LIVE (Public site is fully accessible)"}
+            </span>
+          </div>
+
+          <a
+            href="/?preview_maintenance=true"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-brand hover:text-brand shadow-xs transition-colors shrink-0"
+          >
+            Preview Screen ↗
+          </a>
         </div>
 
         <div>
@@ -1368,6 +1454,16 @@ function SettingsTab({
             value={maintenanceMessage}
             onChange={(e) => setMaintenanceMessage(e.target.value)}
           />
+          <div className="mt-2.5 flex justify-end">
+            <button
+              type="button"
+              disabled={savingMsg}
+              onClick={handleSaveMessage}
+              className="btn btn-secondary btn-sm text-xs"
+            >
+              {savingMsg ? "Updating..." : "Save Message"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1907,10 +2003,12 @@ function ProjectViewModal({
   project,
   onClose,
   onEdit,
+  onDelete,
 }: {
   project: ProjectItem;
   onClose: () => void;
   onEdit: (p: ProjectItem) => void;
+  onDelete?: (id: string) => void;
 }) {
   return (
     <div
@@ -2010,6 +2108,14 @@ function ProjectViewModal({
               </a>
             ) : <div />}
             <div className="flex gap-2">
+              {onDelete && (
+                <button
+                  onClick={() => onDelete(project._id || project.id || "")}
+                  className="btn btn-sm text-xs text-rose-600 hover:bg-rose-50 border border-rose-200"
+                >
+                  <Icon name="trash" className="size-3.5" /> Delete
+                </button>
+              )}
               <button
                 onClick={() => {
                   onClose();

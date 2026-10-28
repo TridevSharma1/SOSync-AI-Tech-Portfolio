@@ -151,7 +151,15 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const [allAdminTestimonials, setAllAdminTestimonials] = useState<BackendTestimonial[]>([]);
   const [story360Slides, setStory360Slides] = useState<Story360Item[]>([]);
   const [admin360Slides, setAdmin360Slides] = useState<Story360Item[]>([]);
-  const [settings, setSettings] = useState<SiteSettingsState>(defaultSettings);
+  const [settings, setSettings] = useState<SiteSettingsState>(() => {
+    if (typeof window !== "undefined") {
+      const savedMode = localStorage.getItem("sosync_maintenance_mode");
+      if (savedMode !== null) {
+        return { ...defaultSettings, maintenanceMode: savedMode === "1" };
+      }
+    }
+    return defaultSettings;
+  });
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("sosync_admin_logged") === "1";
@@ -160,6 +168,25 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   });
   const [authReady, setAuthReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [deletedProjectKeys, setDeletedProjectKeys] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return JSON.parse(localStorage.getItem("sosync_deleted_projects") || "[]");
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
+  const getAuthHeaders = useCallback((): Record<string, string> => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("sosync_admin_token");
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  }, []);
 
   // Check current auth status
   const checkAuth = useCallback(async () => {
@@ -206,12 +233,31 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
             order: p.order,
           }));
 
-          // Preserve dummy projects alongside DB projects so rich case studies are always available
-          const dbTitles = new Set(list.map((p) => (p.title || "").trim().toLowerCase()));
+          // Read fresh deleted keys from storage
+          let currentDeletedKeys = deletedProjectKeys;
+          if (typeof window !== "undefined") {
+            try {
+              currentDeletedKeys = JSON.parse(localStorage.getItem("sosync_deleted_projects") || "[]");
+            } catch {
+              // fallback
+            }
+          }
+
+          const isDeleted = (p: { id?: string; _id?: string; title?: string }) => {
+            const pid = (p.id || p._id || "").toString();
+            const titleLower = (p.title || "").trim().toLowerCase();
+            return (
+              currentDeletedKeys.includes(pid) ||
+              currentDeletedKeys.includes(titleLower)
+            );
+          };
+
+          const activeList = list.filter((p) => !isDeleted(p));
+          const dbTitles = new Set(activeList.map((p) => (p.title || "").trim().toLowerCase()));
           const missingFallbacks = fallbackProjectsList.filter(
-            (fb) => !dbTitles.has(fb.title.trim().toLowerCase())
+            (fb) => !dbTitles.has(fb.title.trim().toLowerCase()) && !isDeleted(fb)
           );
-          const combined = [...list, ...missingFallbacks];
+          const combined = [...activeList, ...missingFallbacks];
 
           setProjects(combined);
           setData((prev) => ({
@@ -301,7 +347,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [deletedProjectKeys]);
 
   useEffect(() => {
     checkAuth();
@@ -317,9 +363,13 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ username, password: pass }),
       });
       if (res.ok) {
+        const json = await res.json();
         setIsAdmin(true);
         if (typeof window !== "undefined") {
           localStorage.setItem("sosync_admin_logged", "1");
+          if (json.token) {
+            localStorage.setItem("sosync_admin_token", json.token);
+          }
         }
         await fetchAllData();
         return true;
@@ -338,6 +388,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       setIsAdmin(false);
       if (typeof window !== "undefined") {
         localStorage.removeItem("sosync_admin_logged");
+        localStorage.removeItem("sosync_admin_token");
       }
     }
   };
@@ -348,7 +399,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       if (typeof file === "string") {
         const res = await fetch("/api/upload", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify({ image: file, folder }),
         });
         const json = await res.json();
@@ -357,8 +408,14 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("folder", folder);
+        const headers: Record<string, string> = {};
+        if (typeof window !== "undefined") {
+          const token = localStorage.getItem("sosync_admin_token");
+          if (token) headers["Authorization"] = `Bearer ${token}`;
+        }
         const res = await fetch("/api/upload", {
           method: "POST",
+          headers,
           body: formData,
         });
         const json = await res.json();
@@ -375,7 +432,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch("/api/projects", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(project),
       });
       if (res.ok) {
@@ -390,9 +447,9 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
 
   const updateProject = async (id: string, patch: Partial<ProjectItem>): Promise<boolean> => {
     try {
-      const res = await fetch(`/api/projects/${id}`, {
+      const res = await fetch(`/api/projects/${encodeURIComponent(id)}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(patch),
       });
       if (res.ok) {
@@ -407,13 +464,45 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
 
   const deleteProject = async (id: string): Promise<boolean> => {
     try {
-      const res = await fetch(`/api/projects/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        await fetchAllData();
-        return true;
+      const target = projects.find((p) => p._id === id || p.id === id);
+      const keysToAdd: string[] = [id];
+      if (target?._id) keysToAdd.push(target._id);
+      if (target?.id) keysToAdd.push(target.id);
+      if (target?.title) keysToAdd.push(target.title.trim().toLowerCase());
+
+      const updatedKeys = Array.from(new Set([...deletedProjectKeys, ...keysToAdd]));
+      setDeletedProjectKeys(updatedKeys);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("sosync_deleted_projects", JSON.stringify(updatedKeys));
       }
-      return false;
-    } catch {
+
+      // Optimistic instant removal from state
+      setProjects((prev) =>
+        prev.filter((p) => {
+          const pid = (p._id || p.id || "").toString();
+          const titleLower = (p.title || "").trim().toLowerCase();
+          return !keysToAdd.includes(pid) && !keysToAdd.includes(titleLower);
+        })
+      );
+      setData((prev) => ({
+        ...prev,
+        portfolio: prev.portfolio.filter((p) => {
+          const pid = (p.id || "").toString();
+          const titleLower = (p.title || "").trim().toLowerCase();
+          return !keysToAdd.includes(pid) && !keysToAdd.includes(titleLower);
+        }),
+      }));
+
+      // Call API with Authorization header
+      const headers = getAuthHeaders();
+      await fetch(`/api/projects/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers,
+      });
+
+      return true;
+    } catch (err) {
+      console.error("Delete project error:", err);
       return false;
     }
   };
@@ -534,9 +623,18 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   // Settings & Footer
   const updateSettings = async (patch: Partial<SiteSettingsState>): Promise<boolean> => {
     try {
+      // Optimistic update
+      setSettings((prev) => ({
+        ...prev,
+        ...patch,
+      }));
+      if (typeof window !== "undefined" && patch.maintenanceMode !== undefined) {
+        localStorage.setItem("sosync_maintenance_mode", patch.maintenanceMode ? "1" : "0");
+      }
+
       const res = await fetch("/api/settings", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(patch),
       });
       if (res.ok) {
