@@ -43,7 +43,7 @@ export function AboutSection() {
   return (
     <section id="about" className="section-pad relative overflow-hidden">
       <div className="dot-grid absolute inset-0 opacity-60" aria-hidden="true" />
-      <div className="container-site relative grid items-center gap-14 lg:grid-cols-2">
+      <div className="container-site relative grid items-center gap-10 sm:gap-14 lg:grid-cols-2">
         {/* Imagery */}
         <Reveal className="relative">
           <div className="overflow-hidden rounded-3xl shadow-lift">
@@ -57,9 +57,9 @@ export function AboutSection() {
             />
           </div>
           {years ? (
-            <div className="card-soft absolute -bottom-6 -right-4 px-6 py-5 text-center sm:right-auto sm:-left-6">
-              <p className="text-gradient-navy font-display text-4xl font-extrabold">{years.value}+</p>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="card-soft absolute bottom-3 right-3 sm:-bottom-6 sm:-left-6 sm:right-auto px-4 py-3 sm:px-6 sm:py-5 text-center shadow-lift bg-white/95 backdrop-blur-md">
+              <p className="text-gradient-navy font-display text-2xl sm:text-4xl font-extrabold">{years.value}+</p>
+              <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Years of Excellence
               </p>
             </div>

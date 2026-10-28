@@ -1,4 +1,6 @@
-import { Link } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -15,7 +17,7 @@ function ServiceCard({ service, delay }: { service: Service; delay: number }) {
         <h3 className="mt-5 font-display text-lg font-bold text-foreground">{service.title}</h3>
         <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{service.description}</p>
         <Link
-          to="/contact"
+          href="/contact"
           className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-all hover:gap-2.5"
         >
           Learn More

@@ -1,4 +1,6 @@
-import { Link } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { StatCounter } from "@/components/StatCounter";
@@ -11,38 +13,38 @@ export function Hero() {
   const heroStats = stats.slice(0, 4);
 
   return (
-    <section className="relative overflow-hidden bg-navy pt-28 md:pt-36">
+    <section className="relative overflow-hidden bg-navy pt-24 sm:pt-28 md:pt-36">
       {/* Ambient layers */}
-      <div className="hero-grid-line absolute inset-0" aria-hidden="true" />
+      <div className="hero-grid-line absolute inset-0 pointer-events-none" aria-hidden="true" />
       <div
-        className="absolute -left-40 top-24 size-[28rem] rounded-full bg-brand/30 blur-3xl animate-pulse-glow"
+        className="pointer-events-none absolute -left-40 top-24 size-[28rem] rounded-full bg-brand/30 blur-3xl animate-pulse-glow"
         aria-hidden="true"
       />
       <div
-        className="absolute -right-32 bottom-0 size-[24rem] rounded-full bg-cyan/25 blur-3xl animate-pulse-glow"
+        className="pointer-events-none absolute -right-32 bottom-0 size-[24rem] rounded-full bg-cyan/25 blur-3xl animate-pulse-glow"
         aria-hidden="true"
       />
 
       <div className="container-site relative">
-        <div className="grid items-center gap-12 pb-14 lg:grid-cols-[1.05fr_0.95fr] lg:pb-20">
+        <div className="grid items-center gap-10 pb-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-20">
           {/* Copy */}
           <Reveal>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-sky">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-widest text-sky">
               <Icon name="sparkles" className="size-3.5" />
               {hero.badge}
             </span>
-            <h1 className="mt-6 text-4xl font-bold leading-[1.12] text-white sm:text-5xl lg:text-[3.4rem]">
+            <h1 className="mt-5 text-3xl font-bold leading-[1.12] text-white xs:text-4xl sm:text-5xl lg:text-[3.4rem]">
               {hero.heading}
             </h1>
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg">
+            <p className="mt-4 sm:mt-6 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-lg">
               {hero.subheading}
             </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link to="/contact" className="btn btn-gradient">
+            <div className="mt-7 sm:mt-8 flex flex-col xs:flex-row items-stretch xs:items-center gap-3 sm:gap-4">
+              <Link href="/contact" className="btn btn-gradient justify-center">
                 {hero.primaryCta}
                 <Icon name="arrow-right" className="size-4" />
               </Link>
-              <a href={`tel:${company.phones[0]?.replace(/\s/g, "")}`} className="btn btn-ghost-light">
+              <a href={`tel:${company.phones[0]?.replace(/\s/g, "")}`} className="btn btn-ghost-light justify-center">
                 <Icon name="phone" className="size-4" />
                 {hero.secondaryCta}
               </a>
@@ -84,7 +86,7 @@ export function Hero() {
 
         {/* Stats band */}
         <Reveal delay={100}>
-          <div className="grid grid-cols-2 gap-8 border-t border-white/10 py-10 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 border-t border-white/10 py-8 sm:gap-8 sm:py-10 md:grid-cols-4">
             {heroStats.map((stat) => (
               <StatCounter key={stat.id} value={stat.value} suffix={stat.suffix} label={stat.label} />
             ))}
