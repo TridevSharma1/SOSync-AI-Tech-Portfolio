@@ -426,61 +426,6 @@ export default function OurStoryPage() {
                       loading="lazy"
                       src={ws.img}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-80" />
-                    <div className="absolute top-4 left-4 z-10">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur-md shadow-sm">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="lucide lucide-building-2 h-3 w-3 text-primary"
-                          aria-hidden="true"
-                        >
-                          <path d="M10 12h4" />
-                          <path d="M10 8h4" />
-                          <path d="M14 21v-3a2 2 0 0 0-4 0v3" />
-                          <path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2" />
-                          <path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16" />
-                        </svg>
-                        {ws.tag}
-                      </span>
-                    </div>
-                    <div className="absolute top-4 right-4 z-10 opacity-0 transition-all duration-300 group-hover:opacity-100 transform group-hover:scale-100 scale-90">
-                      <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-md backdrop-blur-md hover:bg-primary/90">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="lucide lucide-maximize2 h-4 w-4"
-                          aria-hidden="true"
-                        >
-                          <path d="M15 3h6v6" />
-                          <path d="m21 3-7 7" />
-                          <path d="m3 21 7-7" />
-                          <path d="M9 21H3v-6" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-6 z-10 text-white transform transition-transform duration-300">
-                      <h4 className="text-lg font-bold tracking-tight text-white group-hover:text-primary-light transition-colors">
-                        {ws.title}
-                      </h4>
-                      <p className="mt-1 text-xs font-medium text-slate-200/90 line-clamp-2">
-                        {ws.sub}
-                      </p>
-                    </div>
                   </div>
                 </div>
               ))}
