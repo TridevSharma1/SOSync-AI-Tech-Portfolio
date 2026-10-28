@@ -11,11 +11,21 @@ export function ClientLayoutWrapper({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [toggling, setToggling] = useState(false);
 
+  const isAdminLoginRoute = pathname === "/admin/login";
   const isAdminRoute = pathname.startsWith("/admin");
   const isPreview = typeof window !== "undefined" && window.location.search.includes("preview_maintenance=true");
 
-  // Show maintenance screen to regular visitors if maintenanceMode is active or preview requested
-  if (((authReady || typeof window !== "undefined") && settings.maintenanceMode && !isAdmin && !isAdminRoute) || isPreview) {
+  // Show maintenance screen to regular visitors on ALL pages when maintenanceMode is active:
+  // - Authenticated admins (isAdmin === true) can view the site and admin portal.
+  // - The /admin/login route remains available strictly for the administrator to sign in.
+  // - ALL other pages (/, /portfolio, /our-story, /contact, /admin, etc.) are blocked.
+  if (
+    isPreview ||
+    ((authReady || typeof window !== "undefined") &&
+      settings.maintenanceMode &&
+      !isAdmin &&
+      !isAdminLoginRoute)
+  ) {
     return <MaintenanceScreen />;
   }
 

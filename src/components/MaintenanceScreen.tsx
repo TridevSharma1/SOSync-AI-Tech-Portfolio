@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { Logo } from "@/components/Logo";
 import { useSiteData } from "@/context/SiteDataContext";
@@ -74,15 +73,9 @@ export function MaintenanceScreen() {
           </div>
         </div>
 
-        {/* Admin Gateway */}
-        <div className="mt-10 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
-          <span>© {new Date().getFullYear()} {company.shortName || "SOSync AI Tech"}</span>
-          <Link
-            href="/admin/login"
-            className="text-slate-400 hover:text-brand transition-colors underline"
-          >
-            Admin Panel Login →
-          </Link>
+        {/* Footer */}
+        <div className="mt-10 pt-6 border-t border-white/10 flex items-center justify-center text-xs text-slate-400">
+          <span>© {new Date().getFullYear()} {company.shortName || "SOSync AI Tech"}. All rights reserved.</span>
         </div>
       </div>
     </div>
