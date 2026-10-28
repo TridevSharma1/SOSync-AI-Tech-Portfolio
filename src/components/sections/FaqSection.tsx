@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -54,7 +56,7 @@ export function FaqSection() {
             description="Everything clients usually ask before starting a project. Still unsure? We're one call away."
           />
           <Reveal delay={150}>
-            <Link to="/contact" className="btn btn-gradient mt-8">
+            <Link href="/contact" className="btn btn-gradient mt-8">
               Ask Us Directly
               <Icon name="arrow-right" className="size-4" />
             </Link>

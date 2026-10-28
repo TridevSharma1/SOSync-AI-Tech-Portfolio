@@ -1,3 +1,5 @@
+"use client";
+
 import type { CSSProperties, ReactNode } from "react";
 import { useInView } from "@/hooks/useInView";
 
