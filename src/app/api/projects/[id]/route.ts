@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ProjectModel } from "@/models/Project";
 import { isAuthenticatedAdmin } from "@/lib/auth";
@@ -10,7 +11,10 @@ export async function GET(
   try {
     await connectToDatabase();
     const { id } = await params;
-    const project = await ProjectModel.findById(id);
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(id) && id.length === 24;
+    const project = isValidObjectId
+      ? await ProjectModel.findById(id)
+      : await ProjectModel.findOne({ $or: [{ id }, { title: decodeURIComponent(id) }] });
 
     if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
@@ -41,11 +45,18 @@ export async function PUT(
       body.tags = body.tags.split(",").map((s: string) => s.trim()).filter(Boolean);
     }
 
-    const updatedProject = await ProjectModel.findByIdAndUpdate(
-      id,
-      { $set: body },
-      { new: true, runValidators: true }
-    );
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(id) && id.length === 24;
+    const updatedProject = isValidObjectId
+      ? await ProjectModel.findByIdAndUpdate(
+          id,
+          { $set: body },
+          { new: true, runValidators: true }
+        )
+      : await ProjectModel.findOneAndUpdate(
+          { $or: [{ id }, { title: decodeURIComponent(id) }] },
+          { $set: body },
+          { new: true, runValidators: true }
+        );
 
     if (!updatedProject) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
@@ -70,13 +81,22 @@ export async function DELETE(
 
     await connectToDatabase();
     const { id } = await params;
-    const deleted = await ProjectModel.findByIdAndDelete(id);
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(id) && id.length === 24;
 
-    if (!deleted) {
-      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    let deleted = null;
+    if (isValidObjectId) {
+      deleted = await ProjectModel.findByIdAndDelete(id);
+    } else {
+      deleted = await ProjectModel.findOneAndDelete({
+        $or: [{ id }, { title: decodeURIComponent(id) }]
+      });
     }
 
-    return NextResponse.json({ success: true, message: "Project deleted successfully" });
+    return NextResponse.json({
+      success: true,
+      message: "Project deleted successfully",
+      deleted: !!deleted,
+    });
   } catch (error) {
     console.error("DELETE /api/projects/[id] error:", error);
     return NextResponse.json({ error: "Failed to delete project" }, { status: 500 });

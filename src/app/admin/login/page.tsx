@@ -63,7 +63,7 @@ export default function AdminLoginPage() {
               className="field"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="tushar4062@gmail.com or admin"
+              placeholder="admin"
               required
             />
           </div>
@@ -95,8 +95,7 @@ export default function AdminLoginPage() {
 
         <div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-slate-300">
           <p className="font-semibold text-white">Default Admin Credentials:</p>
-          <p className="mt-1 font-mono text-[11px] text-brand">Email: tushar4062@gmail.com</p>
-          <p className="font-mono text-[11px] text-slate-400">Or: admin / admin123</p>
+          <p className="mt-1 font-mono text-[11px] text-brand">admin / admin123</p>
         </div>
 
         <Link href="/" className="mt-4 inline-block text-sm text-primary hover:underline">
