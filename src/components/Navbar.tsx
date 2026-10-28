@@ -11,7 +11,6 @@ const NAV_LINKS = [
   { label: "Portfolio", to: "/portfolio" },
   { label: "Testimonials", to: "/testimonials" },
   { label: "Our Story", to: "/our-story" },
-  { label: "Contact", to: "/contact" },
 ] as const;
 
 interface NavbarProps {
@@ -81,22 +80,22 @@ export function Navbar({ lightTop = false }: NavbarProps) {
             <Link
               href="/"
               aria-label="SOSync home"
-              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg"
+              className="group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg"
               onClick={() => setMenuOpen(false)}
             >
               <Logo tone={tone} name={data.company.name} />
             </Link>
 
             {/* Desktop nav */}
-            <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+            <nav className="hidden items-center gap-1.5 lg:flex" aria-label="Primary">
               {NAV_LINKS.map((link) => {
-                const isActive = pathname === link.to;
+                const isActive = pathname === link.to || (link.to === "/portfolio" && pathname === "/our-work");
                 return (
                   <Link
                     key={link.to}
                     href={link.to}
-                    className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                      isActive ? "bg-brand/10 text-brand font-semibold" : ""
+                    className={`rounded-full px-4 py-2 text-[15px] font-bold tracking-wide transition-all ${
+                      isActive ? "bg-brand/10 text-brand shadow-xs" : "hover:text-brand"
                     }`}
                     style={{ color: isActive ? "var(--brand)" : isGlass ? "var(--ink)" : "#fff" }}
                   >
@@ -170,13 +169,13 @@ export function Navbar({ lightTop = false }: NavbarProps) {
             {/* Links */}
             <div className="mt-6 flex flex-col gap-1.5">
               {NAV_LINKS.map((link) => {
-                const isActive = pathname === link.to;
+                const isActive = pathname === link.to || (link.to === "/portfolio" && pathname === "/our-work");
                 return (
                   <Link
                     key={link.to}
                     href={link.to}
                     onClick={() => setMenuOpen(false)}
-                    className={`flex items-center justify-between rounded-xl px-4 py-3 font-display text-base font-semibold transition-all ${
+                    className={`flex items-center justify-between rounded-xl px-4 py-3 font-display text-base font-bold tracking-wide transition-all ${
                       isActive
                         ? "bg-brand text-white shadow-md shadow-brand/30"
                         : "text-slate-200 hover:bg-white/10 hover:text-white"

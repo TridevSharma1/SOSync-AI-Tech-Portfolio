@@ -4,15 +4,6 @@ import { useState } from "react";
 import { useSiteData } from "@/context/SiteDataContext";
 import { PROJECTS as FALLBACK_PROJECTS } from "@/data/initialProjects";
 
-interface Project {
-  title: string;
-  href: string;
-  image: string;
-  category: string;
-  description: string;
-  tags: string[];
-}
-
 const CATEGORIES = [
   "All",
   "Websites",
@@ -47,31 +38,31 @@ export function RecentProjectsSection() {
   });
 
   return (
-    <section className="container-px mx-auto max-w-7xl py-10 sm:py-16">
-      {/* Header */}
+    <section className="container-px mx-auto max-w-7xl py-12 sm:py-16">
+      {/* Header matching live site */}
       <div className="text-center mx-auto max-w-3xl">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary-soft px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary-soft px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
           <span className="h-1.5 w-1.5 rounded-full bg-primary" />
           Portfolio
         </div>
-        <h2 className="text-2xl xs:text-3xl font-bold leading-[1.15] text-foreground sm:text-4xl lg:text-5xl">
+        <h2 className="text-3xl font-bold leading-[1.1] text-foreground sm:text-4xl lg:text-5xl">
           Recent <span className="text-gradient-brand">projects</span>
         </h2>
-        <p className="mt-3 sm:mt-4 text-sm leading-relaxed text-muted-foreground sm:text-lg">
+        <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
           Explore our recent work by category. Discover how we design, build, and deliver high quality digital solutions for our clients.
         </p>
       </div>
 
       {/* Category filter buttons */}
-      <div className="mt-8 sm:mt-12 flex flex-wrap justify-center gap-1.5 sm:gap-2">
+      <div className="mt-10 sm:mt-12 flex flex-wrap justify-center gap-2">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
             type="button"
             onClick={() => setActiveCategory(cat)}
-            className={`rounded-full px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium transition-all ${
+            className={`rounded-full px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
               activeCategory === cat
-                ? "bg-gradient-brand text-primary-foreground shadow-soft font-semibold"
+                ? "bg-gradient-brand text-primary-foreground shadow-soft"
                 : "border border-border bg-white text-foreground/70 hover:border-primary hover:text-primary"
             }`}
           >
@@ -80,8 +71,8 @@ export function RecentProjectsSection() {
         ))}
       </div>
 
-      {/* Grid */}
-      <div className="mt-8 sm:mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Grid matching live site */}
+      <div className="mt-12 sm:mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.length > 0 ? (
           filtered.map((item, idx) => (
             <div key={item.title || idx}>
@@ -91,39 +82,52 @@ export function RecentProjectsSection() {
                 rel="noreferrer"
                 className="group block overflow-hidden rounded-3xl border border-border bg-white shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant"
               >
-                <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                {/* Image + Top-Left Category Badge */}
+                <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                   <img
                     alt={item.title}
                     loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     src={item.image}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 flex items-center justify-between text-white sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                    <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider bg-primary/90 backdrop-blur-xs px-2.5 py-0.5 sm:py-1 rounded-full shadow-xs">
+                  <div className="absolute left-4 top-4 flex flex-wrap gap-2 pointer-events-none">
+                    <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-primary backdrop-blur-md shadow-xs">
                       {item.category}
                     </span>
-                    {item.href && item.href !== "#" && (
-                      <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-white drop-shadow-sm hover:underline">
-                        Visit Live ↗
-                      </span>
-                    )}
                   </div>
                 </div>
-                <div className="p-5 sm:p-6">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-base sm:text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
+
+                {/* Card Content */}
+                <div className="p-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
                       {item.title}
                     </h3>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-arrow-up-right mt-1 h-5 w-5 shrink-0 text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
+                      aria-hidden="true"
+                    >
+                      <path d="M7 7h10v10" />
+                      <path d="M7 17 17 7" />
+                    </svg>
                   </div>
-                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground line-clamp-2">
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-2">
                     {item.description}
                   </p>
-                  <div className="mt-3 sm:mt-4 flex flex-wrap gap-1.5">
+                  <div className="mt-4 flex flex-wrap gap-1.5">
                     {item.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="rounded-full border border-border bg-surface px-2.5 py-0.5 text-[0.7rem] font-semibold text-foreground/80"
+                        className="rounded-full border border-border bg-surface-soft px-2.5 py-1 text-xs font-medium text-foreground/70"
                       >
                         {tag}
                       </span>
@@ -134,7 +138,7 @@ export function RecentProjectsSection() {
             </div>
           ))
         ) : (
-          <div className="col-span-full py-12 text-center text-muted-foreground">
+          <div className="col-span-full py-16 text-center text-muted-foreground">
             No projects found in this category.
           </div>
         )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSiteData } from "@/context/SiteDataContext";
 
@@ -22,10 +22,20 @@ const CAPABILITIES = [
 export function PortfolioStorySection() {
   const { story360Slides } = useSiteData();
   const [activeSlide, setActiveSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   // Use dynamic slides from MongoDB if available, otherwise fallback to defaults
   const slides = story360Slides && story360Slides.length > 0 ? story360Slides : DEFAULT_SLIDES;
   const currentSlide = slides[activeSlide % slides.length] || slides[0] || DEFAULT_SLIDES[0];
+
+  // Auto-slide effect (advances every 3.5 seconds, pauses on hover/touch)
+  useEffect(() => {
+    if (isPaused || slides.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % slides.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [isPaused, slides.length]);
 
   const prevSlide = () => setActiveSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
   const nextSlide = () => setActiveSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
@@ -37,7 +47,13 @@ export function PortfolioStorySection() {
         <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-16">
           {/* Left: Circular Image Carousel + 360 Badge */}
           <div className="relative lg:col-span-5">
-            <div className="group relative mx-auto flex max-w-[320px] xs:max-w-[360px] sm:max-w-[420px] items-center justify-center lg:max-w-none">
+            <div
+              className="group relative mx-auto flex max-w-[320px] xs:max-w-[360px] sm:max-w-[420px] items-center justify-center lg:max-w-none"
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+              onTouchStart={() => setIsPaused(true)}
+              onTouchEnd={() => setIsPaused(false)}
+            >
               <div className="absolute -inset-3 sm:-inset-6 rounded-full bg-gradient-to-tr from-primary/25 via-orange-100/40 to-amber-100/30 blur-xl sm:blur-2xl" />
               <div className="relative aspect-square w-full max-w-[270px] xs:max-w-[310px] sm:max-w-[360px] md:max-w-[420px] overflow-hidden rounded-full border-4 sm:border-[6px] border-white bg-card shadow-xl sm:shadow-2xl ring-4 sm:ring-8 ring-primary/15">
                 <img

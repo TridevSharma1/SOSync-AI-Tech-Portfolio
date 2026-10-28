@@ -14,13 +14,13 @@ export function Logo({ tone = "light", name: _name, compact }: LogoProps) {
   const markSrc = isLight ? "/images/logo-mark-white.png" : "/images/logo-mark.png";
 
   return (
-    <span className="flex items-center gap-3">
+    <span className="group/logo flex items-center gap-3">
       <img
         src={markSrc}
         alt="SOSync Ai Tech"
         width={42}
         height={42}
-        className="size-9 object-contain shrink-0"
+        className="size-9 object-contain shrink-0 logo-mark-spin"
       />
       {!compact && (
         <span className="flex flex-col leading-none">

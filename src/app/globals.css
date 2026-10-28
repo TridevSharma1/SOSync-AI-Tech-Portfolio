@@ -527,3 +527,23 @@
    -ms-overflow-style: none;
    scrollbar-width: none;
  }
+
+ /* ---------- Logo Spin on Hover ---------- */
+ @keyframes logo-spin-continuous {
+   from {
+     transform: rotate(0deg);
+   }
+   to {
+     transform: rotate(360deg);
+   }
+ }
+
+ .logo-mark-spin {
+   transition: transform 0.5s ease-in-out;
+ }
+
+ .group:hover .logo-mark-spin,
+ .group\/logo:hover .logo-mark-spin,
+ .logo-mark-spin:hover {
+   animation: logo-spin-continuous 2.8s linear infinite;
+ }

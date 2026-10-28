@@ -71,11 +71,11 @@ export function TestimonialsView() {
 
   return (
     <>
-      <Navbar />
-      <main className="bg-navy pt-16 sm:pt-20">
+      <Navbar lightTop />
+      <main className="flex-1 bg-background pt-16 sm:pt-20">
         <TestimonialSlider />
 
-        <section className="section-pad bg-secondary/50">
+        <section className="section-pad bg-slate-50/70 border-t border-border/80">
           <div className="container-site">
             <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
               <SectionHeading
@@ -95,8 +95,8 @@ export function TestimonialsView() {
             <div className="mt-10 sm:mt-14 grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {data.testimonials.map((t, i) => (
                 <Reveal key={t.id} delay={(i % 3) * 80} className="h-full">
-                  <div className="card-soft flex h-full flex-col p-5 sm:p-6">
-                    <span className="flex size-11 items-center justify-center rounded-xl bg-secondary text-brand">
+                  <div className="card-soft group flex h-full flex-col rounded-3xl border border-border bg-white p-6 shadow-card hover:-translate-y-1 hover:shadow-elegant transition-all duration-300">
+                    <span className="flex size-11 items-center justify-center rounded-2xl bg-primary-soft text-primary">
                       <Icon name="quote" className="size-5" />
                     </span>
                     <StarRating rating={t.rating} className="mt-4" />
@@ -104,7 +104,7 @@ export function TestimonialsView() {
                       &ldquo;{t.review}&rdquo;
                     </p>
                     <div className="mt-6 flex items-center gap-3 border-t border-border pt-4 sm:pt-5">
-                      <span className="flex size-10 sm:size-11 items-center justify-center rounded-full bg-gradient-to-br from-brand to-cyan font-display text-xs sm:text-sm font-bold text-white shrink-0">
+                      <span className="flex size-10 sm:size-11 items-center justify-center rounded-full bg-gradient-brand font-display text-xs sm:text-sm font-bold text-white shadow-soft shrink-0">
                         {t.initials}
                       </span>
                       <div className="min-w-0">
