@@ -1,45 +1,54 @@
 interface LogoProps {
-  /** "dark" for light backgrounds, "light" for dark hero / navbar / footer. */
+  /** "dark" for light backgrounds, "light" for dark hero / navbar / footer / admin. */
   tone?: "dark" | "light";
   name?: string;
   compact?: boolean;
+  className?: string;
 }
 
 /**
- * Official SOSync Ai Tech Brand Logo.
- * Uses the isometric AI chip cube mark with responsive contrast and matching typographic lockup.
+ * Official SOSync AI Tech Brand Logo.
+ * Uses the exact provided logo image inside a tailored theme-matching frame:
+ * - Crisp white backdrop with glowing amber perimeter border
+ * - 100% exact original typography, colors, and cube mark
  */
-export function Logo({ tone = "light", name: _name, compact }: LogoProps) {
-  const isLight = tone === "light";
-  const markSrc = isLight ? "/images/logo-mark-white.png" : "/images/logo-mark.png";
+export function Logo({
+  tone = "light",
+  name: _name,
+  compact = false,
+  className = "",
+}: LogoProps) {
+  const cacheKey = "v=sosync_exact_v1";
+
+  if (compact) {
+    return (
+      <span
+        className={`inline-flex items-center justify-center rounded-xl bg-white p-1.5 border border-amber-500/70 shadow-[0_0_12px_rgba(245,158,11,0.25)] transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_18px_rgba(245,158,11,0.4)] shrink-0 ${className}`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`/images/logo-mark-clean.png?${cacheKey}`}
+          alt="SOSync AI Tech"
+          width={32}
+          height={32}
+          className="size-7 sm:size-8 object-contain shrink-0 select-none"
+        />
+      </span>
+    );
+  }
 
   return (
-    <span className="group/logo flex items-center gap-3">
+    <span
+      className={`inline-flex items-center justify-center rounded-xl bg-white px-2.5 py-1 border border-amber-500/70 shadow-[0_0_12px_rgba(245,158,11,0.25)] transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_18px_rgba(245,158,11,0.4)] shrink-0 ${className}`}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={markSrc}
-        alt="SOSync Ai Tech"
-        width={42}
-        height={42}
-        className="size-9 object-contain shrink-0 logo-mark-spin"
+        src={`/images/SOSync-Logo-Exact-Padded.png?${cacheKey}`}
+        alt="SOSync AI Tech"
+        width={160}
+        height={40}
+        className="h-6 sm:h-7.5 w-auto object-contain shrink-0 select-none"
       />
-      {!compact && (
-        <span className="flex flex-col leading-none">
-          <span
-            className={`font-display text-[1.12rem] font-bold tracking-tight ${
-              isLight ? "text-white" : "text-foreground"
-            }`}
-          >
-            S<span className="text-brand">O</span>Sync
-          </span>
-          <span className="mt-1 flex items-center gap-1.5 text-[0.58rem] font-bold uppercase tracking-[0.22em] text-brand">
-            <span className="h-[1.5px] w-2.5 bg-brand inline-block rounded-full" />
-            <span className={isLight ? "text-slate-300" : "text-muted-foreground"}>
-              AI TECH
-            </span>
-            <span className="h-[1.5px] w-2.5 bg-brand inline-block rounded-full" />
-          </span>
-        </span>
-      )}
     </span>
   );
 }

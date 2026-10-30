@@ -21,8 +21,8 @@ export const metadata: Metadata = {
 export default function PortfolioPage() {
   return (
     <>
-      <Navbar lightTop />
-      <main className="pt-14 sm:pt-16">
+      <Navbar />
+      <main className="pt-14 sm:pt-16 bg-[#030712]">
         {/* 1st: 360 Digital Solutions / About Us section */}
         <PortfolioStorySection />
         {/* 2nd: Recent Projects / Portfolio */}

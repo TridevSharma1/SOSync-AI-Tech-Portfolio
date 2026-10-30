@@ -1,7 +1,15 @@
+import dns from "node:dns";
 import mongoose from "mongoose";
 import { defaultSiteData } from "@/data";
 
-const MONGODB_URL = process.env.MONGODB_URL;
+// Configure fallback public DNS resolvers to prevent querySrv ECONNREFUSED issues on restrictive networks
+try {
+  dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
+} catch (e) {
+  console.warn("Could not set custom DNS servers:", e);
+}
+
+const MONGODB_URL = process.env.MONGODB_URI || process.env.MONGODB_URL;
 
 if (!MONGODB_URL) {
   console.warn("⚠️ Warning: MONGODB_URL is not defined in environment variables.");

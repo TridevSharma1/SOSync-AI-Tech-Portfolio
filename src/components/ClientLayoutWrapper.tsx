@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useSiteData } from "@/context/SiteDataContext";
 import { MaintenanceScreen } from "@/components/MaintenanceScreen";
+import { FloatingActions } from "@/components/FloatingActions";
 
 export function ClientLayoutWrapper({ children }: { children: ReactNode }) {
   const { settings, isAdmin, authReady, toggleMaintenanceMode } = useSiteData();
@@ -67,6 +68,7 @@ export function ClientLayoutWrapper({ children }: { children: ReactNode }) {
         </div>
       )}
       {children}
+      <FloatingActions />
     </>
   );
 }
