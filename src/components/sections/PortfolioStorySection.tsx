@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Sparkles, Check, ChevronLeft, ChevronRight, Phone, ArrowRight } from "lucide-react";
 import { useSiteData } from "@/context/SiteDataContext";
 
 const DEFAULT_SLIDES = [
@@ -11,26 +12,34 @@ const DEFAULT_SLIDES = [
 ];
 
 const CAPABILITIES = [
-  "Search Engine Optimization",
-  "Creative and Graphic Design",
-  "Social Media Marketing",
-  "Website & Custom Software Design",
-  "Google Ads & PPC",
-  "Multimedia & Influencer Marketing",
+  "Website Development",
+  "Software Development",
+  "Mobile Apps",
+  "Cloud Solution",
+  "Digital Marketing",
+  "IT Solution",
 ] as const;
 
 export function PortfolioStorySection({ className = "" }: { className?: string } = {}) {
-  const { story360Slides, admin360Slides, projects } = useSiteData();
+  const { story360Slides, admin360Slides, projects, data } = useSiteData();
+  const [mounted, setMounted] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const phoneDisplay = data.company.phones[0] || "+91 91724 03714";
+  const phoneClean = phoneDisplay.replace(/[^0-9+]/g, "");
 
   // Strictly show ONLY:
   // 1. Images added by admin in 360 digital section (Story360)
   // 2. Project images (projects with showIn360 enabled, excluding dummy template projects)
-  const slides = useMemo(() => {
+  const dynamicSlides = useMemo(() => {
     // 1. Custom 360 images added by admin
     const custom = (admin360Slides || [])
-      .filter((s) => s.active !== false && s.src && !s.src.startsWith("/about-story-slide-"))
+      .filter((s) => s.active !== false && s.src && !s.src.startsWith("/about-story-slide-") && !s.src.includes("tlnk9z76rpxuhobvirlj"))
       .map((s) => ({
         _id: s._id,
         src: s.src,
@@ -41,7 +50,7 @@ export function PortfolioStorySection({ className = "" }: { className?: string }
 
     // 2. Project images with showIn360 enabled
     const projectItems = (projects || [])
-      .filter((p) => p.showIn360 !== false && Boolean(p.image))
+      .filter((p) => p.showIn360 !== false && Boolean(p.image) && !p.image.includes("tlnk9z76rpxuhobvirlj"))
       .map((p) => ({
         _id: `proj-${p._id || p.id}`,
         src: p.image,
@@ -61,14 +70,17 @@ export function PortfolioStorySection({ className = "" }: { className?: string }
     // Fallback: If story360Slides from API exists and has non-dummy slides
     if (story360Slides && story360Slides.length > 0) {
       const filtered = story360Slides.filter(
-        (s) => s.src && !s.src.startsWith("/about-story-slide-")
+        (s) => s.src && !s.src.startsWith("/about-story-slide-") && !s.src.includes("tlnk9z76rpxuhobvirlj")
       );
       if (filtered.length > 0) return filtered;
-      return story360Slides;
+      return story360Slides.filter((s) => !s.src.includes("tlnk9z76rpxuhobvirlj"));
     }
 
     return DEFAULT_SLIDES;
   }, [admin360Slides, projects, story360Slides]);
+
+  // Prevent SSR/client hydration mismatch by using DEFAULT_SLIDES during SSR/first hydrate
+  const slides = mounted ? dynamicSlides : DEFAULT_SLIDES;
 
   const currentSlide = slides[activeSlide % slides.length] || slides[0] || DEFAULT_SLIDES[0];
 
@@ -85,168 +97,102 @@ export function PortfolioStorySection({ className = "" }: { className?: string }
   const nextSlide = () => setActiveSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
 
   return (
-    <section className={`pt-2 sm:pt-3 pb-12 sm:pb-16 lg:pb-20 relative overflow-hidden bg-background ${className}`.trim()}>
-      <div className="dot-grid absolute inset-0 opacity-40" aria-hidden="true" />
+    <section className={`pt-2 sm:pt-3 pb-12 sm:pb-16 lg:pb-20 relative overflow-hidden bg-[#030712] ${className}`.trim()}>
+      <div className="dot-grid absolute inset-0 opacity-20 pointer-events-none" aria-hidden="true" />
       <div className="container-site relative">
         <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-16">
-          {/* Left: Circular Image Carousel + 360 Badge */}
-          <div className="relative lg:col-span-5">
+          {/* Left: Pure Frameless Edge-to-Edge Screenshot (Zero Corner Radius, No Downside Box) */}
+          <div className="relative lg:col-span-6">
             <div
-              className="group relative mx-auto flex max-w-[320px] xs:max-w-[360px] sm:max-w-[420px] items-center justify-center lg:max-w-none"
+              className="group relative w-full"
               onMouseEnter={() => setIsPaused(true)}
               onMouseLeave={() => setIsPaused(false)}
               onTouchStart={() => setIsPaused(true)}
               onTouchEnd={() => setIsPaused(false)}
             >
-              <div className="absolute -inset-3 sm:-inset-6 rounded-full bg-gradient-to-tr from-primary/25 via-orange-100/40 to-amber-100/30 blur-xl sm:blur-2xl" />
-              <div className="relative aspect-square w-full max-w-[270px] xs:max-w-[310px] sm:max-w-[360px] md:max-w-[420px] overflow-hidden rounded-full border-4 sm:border-[6px] border-white bg-card shadow-xl sm:shadow-2xl ring-4 sm:ring-8 ring-primary/15">
+              {/* Soft Ambient Floating Backlight Aura */}
+              <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-tr from-amber-500/15 via-blue-600/15 to-transparent blur-2xl pointer-events-none -z-10" />
+
+              {/* Zero-Radius Card (100% Uncropped Corners, Exact Fit Without Downside Box) */}
+              <div
+                suppressHydrationWarning
+                className="relative aspect-video w-full overflow-hidden rounded-none shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] ring-1 ring-white/10"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  alt={currentSlide.alt ?? "SOSync AI Tech 360 Digital Solution"}
-                  className="h-full w-full object-cover object-top transition-opacity duration-500"
+                  suppressHydrationWarning
+                  alt={currentSlide.alt ?? "SOSync AI Tech Digital Solution"}
+                  className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.01]"
                   src={currentSlide.src ?? "/about-story-slide-2.jpg"}
                 />
 
-                {/* Project / Slide Title Overlay Badge */}
-                {currentSlide.title && (
-                  <div className="absolute bottom-10 sm:bottom-12 inset-x-4 sm:inset-x-8 z-20 flex justify-center pointer-events-none">
-                    <span className="rounded-full bg-navy/85 backdrop-blur-md px-3 py-1 text-[11px] sm:text-xs font-semibold text-white shadow-md border border-white/20 truncate max-w-[90%] text-center">
-                      {currentSlide.title}
-                    </span>
-                  </div>
-                )}
-
-                {/* Dots */}
-                <div className="absolute bottom-3 sm:bottom-5 left-0 right-0 z-20 flex items-center justify-center gap-1.5 px-4 overflow-hidden">
-                  {slides.slice(0, 10).map((_, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      aria-label={`Go to slide ${idx + 1}`}
-                      onClick={() => setActiveSlide(idx)}
-                      className={`h-2 transition-all duration-300 rounded-full shadow-xs ${
-                        activeSlide % slides.length === idx ? "w-6 sm:w-7 bg-primary" : "w-2 bg-white/80 hover:bg-white"
-                      }`}
-                    />
-                  ))}
-                  {slides.length > 10 && (
-                    <span className="text-[10px] text-white/90 font-bold ml-1">+{slides.length - 10}</span>
-                  )}
-                </div>
-
-                {/* Navigation Arrows - Accessible on mobile touch screens */}
+                {/* Minimal Floating Navigation Arrows */}
                 <button
                   type="button"
                   aria-label="Previous slide"
                   onClick={prevSlide}
-                  className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 grid h-7 w-7 sm:h-8 sm:w-8 place-items-center rounded-full bg-white/90 text-foreground shadow-md opacity-90 transition-all duration-300 hover:bg-primary hover:text-white sm:opacity-0 sm:group-hover:opacity-100"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 grid h-8 w-8 sm:h-9 sm:w-9 place-items-center bg-black/75 text-white backdrop-blur-md border border-white/20 shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-amber-500 hover:text-black cursor-pointer"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-chevron-left h-3.5 w-3.5 sm:h-4 sm:w-4"
-                    aria-hidden="true"
-                  >
-                    <path d="m15 18-6-6 6-6" />
-                  </svg>
+                  <ChevronLeft className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
                   aria-label="Next slide"
                   onClick={nextSlide}
-                  className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 grid h-7 w-7 sm:h-8 sm:w-8 place-items-center rounded-full bg-white/90 text-foreground shadow-md opacity-90 transition-all duration-300 hover:bg-primary hover:text-white sm:opacity-0 sm:group-hover:opacity-100"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 grid h-8 w-8 sm:h-9 sm:w-9 place-items-center bg-black/75 text-white backdrop-blur-md border border-white/20 shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-amber-500 hover:text-black cursor-pointer"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-chevron-right h-3.5 w-3.5 sm:h-4 sm:w-4"
-                    aria-hidden="true"
-                  >
-                    <path d="m9 18 6-6-6-6" />
-                  </svg>
+                  <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
 
-              {/* 360 Degree Digital Solutions Badge */}
-              <div className="absolute -top-2 -left-2 sm:-top-5 sm:-left-4 z-20 flex h-20 w-20 xs:h-24 xs:w-24 sm:h-32 sm:w-32 md:h-36 md:w-36 flex-col items-center justify-center rounded-full border-2 sm:border-4 border-white bg-gradient-to-br from-orange-500 via-orange-600 to-amber-500 p-1.5 sm:p-3 text-center text-white shadow-[0_8px_25px_rgba(249,115,22,0.45)] transition-transform duration-300 hover:scale-105">
-                <div className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-black tracking-tight leading-none text-white drop-shadow-sm">
-                  360°
-                </div>
-                <div className="mt-0.5 sm:mt-1 text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs font-bold leading-tight uppercase tracking-wider text-white/95">
-                  Digital<br />Solutions
-                </div>
+              {/* Minimal Clean Dots Below Screenshot */}
+              <div suppressHydrationWarning className="mt-3.5 flex items-center justify-center gap-1.5 overflow-hidden">
+                {slides.slice(0, 10).map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    aria-label={`Go to slide ${idx + 1}`}
+                    onClick={() => setActiveSlide(idx)}
+                    className={`h-1.5 sm:h-2 transition-all duration-300 rounded-full cursor-pointer ${
+                      activeSlide % slides.length === idx ? "w-6 sm:w-7 bg-amber-500" : "w-1.5 sm:w-2 bg-white/20 hover:bg-white/50"
+                    }`}
+                  />
+                ))}
+                {slides.length > 10 && (
+                  <span className="text-[10px] text-white/50 font-bold ml-1">+{slides.length - 10}</span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Right: Story Content */}
-          <div className="lg:col-span-7">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary-soft px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-primary shadow-xs">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-sparkles h-3.5 w-3.5"
-                aria-hidden="true"
-              >
-                <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
-                <path d="M20 2v4" />
-                <path d="M22 4h-4" />
-                <circle cx="4" cy="20" r="2" />
-              </svg>
-              {" "}ABOUT US
+          {/* Right: Story Content (Full natural width, no distortion) */}
+          <div className="lg:col-span-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1 text-xs font-black uppercase tracking-widest text-amber-400 shadow-xs">
+              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+              <span>ABOUT US</span>
             </div>
 
-            <h2 className="mt-4 text-2xl xs:text-3xl font-bold leading-[1.18] text-foreground sm:text-4xl lg:text-5xl">
+            <h2 className="mt-4 text-2xl xs:text-3xl font-bold leading-[1.18] text-white sm:text-4xl lg:text-5xl font-display">
               We design, build, and scale{" "}
-              <span className="text-gradient-brand">digital products</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-amber-200">
+                digital products
+              </span>
             </h2>
 
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-lg">
-              SOSync AI Tech is a full-cycle software development and digital innovation company based in Kharadi, Pune. We partner with fast-growing startups and established enterprises to engineer scalable web platforms, high-performance mobile apps, and robust enterprise software.
+            <p className="mt-4 text-sm leading-relaxed text-blue-100/90 sm:text-base lg:text-lg">
+              <span className="font-extrabold text-amber-400">SOSync AI Tech</span> is a trusted{" "}
+              <span className="font-extrabold text-amber-400">Software Development &amp; Digital Marketing</span>{" "}
+              company in <span className="font-extrabold text-amber-400">Pune</span> focused on high quality, simple design, and fast delivery. We build custom websites, mobile applications, and smart software solutions that help businesses grow and succeed online with ease.
             </p>
 
-            {/* Feature Checklist */}
+            {/* Feature Checklist (6 Services) */}
             <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               {CAPABILITIES.map((cap) => (
                 <div key={cap} className="flex items-center gap-2.5">
-                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="lucide lucide-check h-3 w-3"
-                      aria-hidden="true"
-                    >
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
+                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                    <Check className="h-3 w-3 stroke-[3]" />
                   </span>
-                  <span className="text-xs sm:text-sm font-semibold text-foreground/90">
+                  <span className="text-xs sm:text-sm font-semibold text-blue-100">
                     {cap}
                   </span>
                 </div>
@@ -255,33 +201,21 @@ export function PortfolioStorySection({ className = "" }: { className?: string }
 
             {/* CTA Buttons */}
             <div className="mt-8 flex flex-col xs:flex-row items-stretch xs:items-center gap-3 sm:gap-4">
-              <Link
-                href="/our-story"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white shadow-soft transition-all duration-300 hover:bg-primary/90 hover:shadow-elegant"
+              <a
+                href={`tel:${phoneClean}`}
+                className="btn btn-gradient px-6 py-3 text-sm font-extrabold text-black shadow-lg shadow-amber-500/25 animate-border-glow-orange cursor-pointer inline-flex items-center justify-center gap-2"
+                title={`Call: ${phoneDisplay}`}
+                aria-label={`Enquiry Now: ${phoneDisplay}`}
               >
-                Learn more about us
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-arrow-right h-4 w-4"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12h14" />
-                  <path d="m12 5 7 7-7 7" />
-                </svg>
-              </Link>
+                <Phone size={15} />
+                <span>Enquiry Now</span>
+              </a>
               <Link
                 href="/portfolio"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-semibold text-foreground hover:border-primary hover:text-primary transition-all text-center"
+                className="btn btn-secondary-gray px-6 py-3 text-sm font-semibold text-blue-200 hover:text-white cursor-pointer inline-flex items-center justify-center gap-2"
               >
-                Explore Projects ({projects.length})
+                <span>Explore Portfolio</span>
+                <ArrowRight size={15} />
               </Link>
             </div>
           </div>

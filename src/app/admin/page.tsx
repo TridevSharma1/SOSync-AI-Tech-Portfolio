@@ -142,7 +142,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-800">
+    <div className="flex min-h-screen bg-[#030712] text-slate-100 relative selection:bg-amber-500 selection:text-black">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-5 right-5 z-[999] flex items-center gap-2 rounded-xl bg-slate-900 text-white px-5 py-3 shadow-xl border border-white/10 animate-in fade-in slide-in-from-top-4">
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
       )}
 
       {/* Sidebar Navigation */}
-      <aside className="hidden w-64 shrink-0 flex-col bg-navy p-5 text-white lg:flex border-r border-navy-soft">
+      <aside className="hidden w-64 shrink-0 flex-col bg-[#070F1E] p-5 text-white lg:flex border-r border-blue-900/50 shadow-2xl relative z-10">
         <div className="px-2 py-1">
           <Logo tone="light" name={settings.company.shortName || "SOSync AI Tech"} />
         </div>
@@ -167,8 +167,8 @@ export default function AdminDashboard() {
               onClick={() => setTab(n.id)}
               className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-sm font-semibold transition-all ${
                 tab === n.id
-                  ? "bg-brand text-white shadow-md shadow-brand/30"
-                  : "text-slate-300 hover:bg-navy-soft hover:text-white"
+                  ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-black font-extrabold shadow-lg shadow-amber-500/20"
+                  : "text-blue-200/80 hover:bg-white/5 hover:text-white font-semibold"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -176,7 +176,7 @@ export default function AdminDashboard() {
                 <span>{n.label}</span>
               </div>
               {n.badge ? (
-                <span className="rounded-full bg-brand-deep px-2 py-0.5 text-xs font-bold text-white">
+                <span className="rounded-full bg-amber-400 text-black px-2 py-0.5 text-[10px] font-black">
                   {n.badge}
                 </span>
               ) : null}
@@ -198,7 +198,7 @@ export default function AdminDashboard() {
             className={`w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all cursor-pointer border text-left ${
               settings.maintenanceMode
                 ? "bg-amber-500/20 border-amber-500/40 hover:bg-amber-500/30 text-amber-300 shadow-sm"
-                : "bg-navy-soft/60 border-white/10 hover:bg-navy-soft text-slate-300 hover:text-white"
+                : "bg-[#0B152B]/60 border-blue-900/50 hover:bg-[#0B152B] text-blue-200/80 hover:text-white"
             }`}
           >
             <div className="flex items-center gap-2.5">
@@ -227,10 +227,10 @@ export default function AdminDashboard() {
       {/* Main Container */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Top Header */}
-        <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 shadow-xs">
+        <header className="sticky top-0 z-40 flex items-center justify-between border-b border-blue-900/40 bg-[#030712]/90 backdrop-blur-xl px-6 py-4 shadow-xl">
           <div className="flex items-center gap-3 lg:hidden">
             <select
-              className="field text-sm font-semibold py-1.5"
+              className="field text-sm font-semibold py-1.5 bg-[#0B152B] border-blue-900/60 text-white"
               value={tab}
               onChange={(e) => setTab(e.target.value as AdminTab)}
             >
@@ -243,7 +243,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
-            <h1 className="font-display text-xl font-bold text-foreground">
+            <h1 className="font-display text-xl font-extrabold text-white tracking-tight">
               {NAV_ITEMS.find((n) => n.id === tab)?.label}
             </h1>
           </div>
@@ -261,7 +261,7 @@ export default function AdminDashboard() {
               className={`inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold transition-all border shadow-xs cursor-pointer disabled:opacity-50 ${
                 settings.maintenanceMode
                   ? "bg-amber-500 text-slate-950 border-amber-600 hover:bg-amber-400 shadow-amber-500/20"
-                  : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
+                  : "bg-[#0B152B] border-blue-900/60 text-blue-200 hover:border-amber-500/40 hover:bg-[#0E1A34]"
               }`}
             >
               <span
@@ -281,7 +281,7 @@ export default function AdminDashboard() {
             <Link
               href="/"
               target="_blank"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-brand transition-all"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-blue-900/60 bg-[#0B152B] px-3.5 py-1.5 text-xs font-bold text-blue-200 hover:border-amber-500/50 hover:text-amber-400 hover:bg-[#0E1A34] transition-all shadow-xs"
             >
               View Live Website ↗
             </Link>
@@ -635,12 +635,12 @@ function OverviewTab({
     <div className="space-y-8">
       {/* Maintenance alert if active */}
       {maintenanceMode && (
-        <div className="rounded-2xl bg-amber-500/15 border border-amber-500/30 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="rounded-2xl bg-amber-500/10 border border-amber-500/40 backdrop-blur-md p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg shadow-amber-500/5">
           <div className="flex items-center gap-3">
             <span className="size-3 rounded-full bg-amber-500 animate-ping shrink-0" />
             <div>
-              <h3 className="font-bold text-amber-900 text-sm">Maintenance Mode is ON</h3>
-              <p className="text-xs text-amber-800">
+              <h3 className="font-bold text-amber-300 text-sm font-bold">Maintenance Mode is ON</h3>
+              <p className="text-xs text-amber-200/80">
                 Regular visitors are seeing the maintenance page. Public site is temporarily hidden.
               </p>
             </div>
@@ -673,7 +673,7 @@ function OverviewTab({
           <button
             key={c.title}
             onClick={() => onNavigate(c.tab)}
-            className="card-soft text-left p-6 flex flex-col justify-between hover:shadow-elegant transition-all bg-white"
+            className="rounded-2xl text-left p-6 flex flex-col justify-between bg-[#0B152B]/75 border border-blue-900/60 hover:border-amber-500/50 hover:shadow-[0_0_25px_rgba(245,158,11,0.15)] backdrop-blur-md transition-all duration-300 group cursor-pointer"
           >
             <div className="flex items-center justify-between">
               <span
@@ -688,17 +688,20 @@ function OverviewTab({
               )}
             </div>
             <div className="mt-6">
-              <div className="font-display text-3xl font-extrabold text-foreground">{c.value}</div>
-              <div className="text-sm font-bold text-slate-800 mt-1">{c.title}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{c.sub}</div>
+              <div className="font-display text-3xl sm:text-4xl font-black text-white">{c.value}</div>
+              <div className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors mt-1">{c.title}</div>
+              <div className="text-xs text-blue-200/70 mt-0.5">{c.sub}</div>
             </div>
           </button>
         ))}
       </div>
 
       {/* Quick Action Bar */}
-      <div className="card-soft p-6 bg-white">
-        <h3 className="font-display text-base font-bold text-foreground mb-4">Quick Management</h3>
+      <div className="rounded-2xl p-6 bg-[#0B152B]/75 border border-blue-900/60 backdrop-blur-md shadow-xl">
+        <h3 className="font-display text-base font-bold text-white mb-4 flex items-center gap-2">
+          <span className="size-2 rounded-full bg-amber-400" />
+          <span>Quick Management</span>
+        </h3>
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => onNavigate("projects")}
@@ -783,13 +786,13 @@ function ProjectsTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="font-display text-xl font-bold text-foreground">Portfolio Projects</h2>
+            <h2 className="font-display text-xl font-bold text-white">Portfolio Projects</h2>
             <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
               {projects.length} Total
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Manage projects shown on the portfolio page and the 360° Digital Solution section.
+            Manage projects shown on the portfolio page and the 360° Digital Solution section (Optimal image: 16:9 widescreen, 1920 × 1080 px).
           </p>
         </div>
         <button onClick={onAddNew} className="btn btn-gradient btn-sm self-start sm:self-auto">
@@ -798,18 +801,18 @@ function ProjectsTab({
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200">
+      <div className="flex flex-wrap items-center gap-3 bg-[#0B152B]/75 border border-blue-900/60 p-4 rounded-2xl backdrop-blur-md shadow-lg">
         <div className="relative flex-1 min-w-[200px]">
           <Icon name="search" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
           <input
-            className="field pl-9 text-xs sm:text-sm"
+            className="w-full rounded-xl border border-blue-900/60 bg-[#070F1E] pl-9 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30"
             placeholder="Search projects by title, tag..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <select
-          className="field max-w-[180px] text-xs sm:text-sm"
+          className="rounded-xl border border-blue-900/60 bg-[#070F1E] px-3 py-2.5 text-xs sm:text-sm text-white focus:border-amber-500 focus:outline-none max-w-[180px]"
           value={catFilter}
           onChange={(e) => setCatFilter(e.target.value)}
         >
@@ -828,10 +831,10 @@ function ProjectsTab({
           return (
             <div
               key={id}
-              className="card-soft overflow-hidden flex flex-col justify-between bg-white border border-slate-200"
+              className="rounded-2xl overflow-hidden flex flex-col justify-between bg-[#0B152B]/75 border border-blue-900/60 hover:border-amber-500/50 hover:shadow-xl transition-all duration-300 group shadow-md"
             >
               <div>
-                <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden">
+                <div className="relative aspect-[16/10] bg-[#070F1E] overflow-hidden">
                   <img
                     src={p.image}
                     alt={p.title}
@@ -852,15 +855,15 @@ function ProjectsTab({
                 </div>
 
                 <div className="p-5">
-                  <h3 className="font-bold text-foreground text-base line-clamp-1">{p.title}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                  <h3 className="font-bold text-white text-base line-clamp-1 group-hover:text-amber-400 transition-colors">{p.title}</h3>
+                  <p className="mt-1 text-xs text-blue-200/70 line-clamp-2 leading-relaxed">
                     {p.description || "No description provided."}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-1">
                     {p.tags.map((t) => (
                       <span
                         key={t}
-                        className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600"
+                        className="rounded-full border border-blue-900/60 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-blue-200/80"
                       >
                         {t}
                       </span>
@@ -869,7 +872,7 @@ function ProjectsTab({
                 </div>
               </div>
 
-              <div className="p-4 border-t border-slate-100 flex items-center justify-between gap-2 bg-slate-50/50">
+              <div className="p-4 border-t border-blue-900/40 flex items-center justify-between gap-2 bg-[#070F1E]/60">
                 {p.href && p.href !== "#" ? (
                   <a
                     href={p.href}
@@ -885,7 +888,7 @@ function ProjectsTab({
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => onView(p)}
-                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-brand hover:text-brand shadow-xs transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-blue-900/60 bg-[#0B152B] px-3 py-1.5 text-xs font-bold text-blue-200 hover:border-amber-500/50 hover:text-amber-400 transition-all shadow-xs"
                     title="View full project details"
                   >
                     <Icon name="eye" className="size-3.5" />
@@ -893,7 +896,7 @@ function ProjectsTab({
                   </button>
                   <button
                     onClick={() => onEdit(p)}
-                    className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-200 hover:text-brand"
+                    className="p-1.5 rounded-lg text-blue-200/80 hover:bg-red-500/10 hover:text-red-400 transition-colors"
                     title="Edit project"
                   >
                     <Icon name="edit" className="size-4" />
@@ -913,7 +916,7 @@ function ProjectsTab({
       </div>
 
       {filtered.length === 0 && (
-        <div className="card-soft p-12 text-center bg-white text-muted-foreground text-sm">
+        <div className="rounded-2xl p-12 text-center bg-[#0B152B]/60 border border-blue-900/50 text-blue-200/70 text-sm">
           No projects found. Click &quot;Add Project&quot; to create your first one!
         </div>
       )}
@@ -975,11 +978,11 @@ function Story360Tab({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-xl font-bold text-foreground">
+          <h2 className="font-display text-xl font-bold text-white">
             360° Digital Solution Section Images
           </h2>
           <p className="text-xs text-muted-foreground">
-            Manage the circular image carousel in the &quot;About Us / 360° Digital Solution&quot; section on the homepage and portfolio.
+            Manage images in the &quot;About Us / 360° Digital Solution&quot; section on homepage & portfolio (Optimal: 16:9 aspect ratio, 1920 × 1080 px).
           </p>
         </div>
         <button onClick={onAddNew} className="btn btn-gradient btn-sm self-start sm:self-auto">
@@ -989,11 +992,11 @@ function Story360Tab({
 
       {/* Custom 360 Slides Added by Admin */}
       <div>
-        <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
           <span>Custom Images Added in 360 Section ({customSlides.length})</span>
         </h3>
         {customSlides.length === 0 ? (
-          <div className="card-soft p-8 bg-white border border-dashed border-slate-300 text-center rounded-2xl">
+          <div className="rounded-2xl p-8 bg-[#0B152B]/60 border border-dashed border-blue-900/60 text-center text-blue-200/70">
             <p className="text-sm text-slate-500 font-medium">No custom 360 images added yet.</p>
             <p className="text-xs text-slate-400 mt-1">Upload images specifically for the circular 360° showcase carousel.</p>
             <button onClick={onAddNew} className="btn btn-gradient btn-sm mt-4">
@@ -1005,11 +1008,11 @@ function Story360Tab({
             {customSlides.map((s) => (
               <div
                 key={s._id}
-                className="card-soft overflow-hidden bg-white border border-slate-200 flex flex-col justify-between"
+                className="rounded-2xl overflow-hidden bg-[#0B152B]/75 border border-blue-900/60 hover:border-amber-500/50 flex flex-col justify-between transition-all duration-300 shadow-md group"
               >
                 <div>
-                  <div className="relative aspect-square bg-slate-100 overflow-hidden flex items-center justify-center p-3">
-                    <div className="relative size-full rounded-full overflow-hidden border-4 border-slate-200 shadow-inner">
+                  <div className="relative aspect-square bg-[#070F1E] overflow-hidden flex items-center justify-center p-3">
+                    <div className="relative size-full rounded-full overflow-hidden border-4 border-blue-900/70 shadow-inner">
                       <img src={s.src} alt={s.alt} className="size-full object-cover" />
                     </div>
                     <div className="absolute top-3 right-3">
@@ -1018,7 +1021,7 @@ function Story360Tab({
                         className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-xs cursor-pointer ${
                           s.active !== false
                             ? "bg-emerald-500 text-white"
-                            : "bg-slate-300 text-slate-700"
+                            : "bg-white/10 text-slate-300"
                         }`}
                       >
                         {s.active !== false ? "Active in 360" : "Inactive"}
@@ -1026,19 +1029,19 @@ function Story360Tab({
                     </div>
                   </div>
                   <div className="p-4">
-                    <h4 className="font-bold text-sm text-foreground truncate">
+                    <h4 className="font-bold text-sm text-white truncate">
                       {s.title || "Custom 360 Slide"}
                     </h4>
                     <p className="text-xs text-muted-foreground truncate mt-0.5">{s.alt}</p>
                   </div>
                 </div>
 
-                <div className="p-3 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+                <div className="p-3 border-t border-blue-900/40 flex items-center justify-between bg-[#070F1E]/60">
                   <span className="text-[11px] text-slate-400">Order: {s.order || 0}</span>
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => onView(s)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 hover:border-brand hover:text-brand shadow-xs"
+                      className="inline-flex items-center gap-1 rounded-lg border border-blue-900/60 bg-[#0B152B] px-2.5 py-1 text-xs font-semibold text-blue-200 hover:border-amber-500 hover:text-amber-400 shadow-xs"
                     >
                       <Icon name="eye" className="size-3.5" /> View
                     </button>
@@ -1061,7 +1064,7 @@ function Story360Tab({
       <div className="pt-4 border-t border-slate-200">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-sm font-bold text-foreground">
+            <h3 className="text-sm font-bold text-white">
               Projects Displayed in 360° Carousel ({projectsIn360.length})
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -1085,13 +1088,13 @@ function Story360Tab({
             {projectsIn360.map((p) => (
               <div
                 key={p._id || p.id}
-                className="card-soft overflow-hidden bg-white border border-slate-200 flex items-center gap-3 p-3 rounded-2xl"
+                className="rounded-2xl overflow-hidden bg-[#0B152B]/75 border border-blue-900/60 hover:border-amber-500/50 flex items-center gap-3 p-3 transition-all duration-300 shadow-md"
               >
                 <div className="size-14 rounded-full overflow-hidden shrink-0 border-2 border-brand/30">
                   <img src={p.image} alt={p.title} className="size-full object-cover" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="font-bold text-xs text-foreground truncate">{p.title}</h4>
+                  <h4 className="font-bold text-xs text-white truncate">{p.title}</h4>
                   <span className="inline-block mt-0.5 rounded-full bg-brand/10 text-brand px-2 py-0.5 text-[10px] font-bold">
                     360° Active
                   </span>
@@ -1138,7 +1141,7 @@ function TestimonialsTab({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-xl font-bold text-foreground">Client Testimonials</h2>
+          <h2 className="font-display text-xl font-bold text-white">Client Testimonials</h2>
           <p className="text-xs text-muted-foreground">
             Approve client reviews before they appear on the public website.
           </p>
@@ -1156,8 +1159,8 @@ function TestimonialsTab({
             onClick={() => setFilter(st)}
             className={`rounded-full px-4 py-1.5 text-xs font-bold capitalize transition-all ${
               filter === st
-                ? "bg-slate-900 text-white shadow-xs"
-                : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+                ? "bg-amber-500 text-black font-extrabold shadow-md shadow-amber-500/25"
+                : "border border-blue-900/60 bg-[#0B152B]/80 text-blue-200/80 hover:bg-[#0B152B] hover:text-white"
             }`}
           >
             {st}{" "}
@@ -1175,7 +1178,7 @@ function TestimonialsTab({
         {filtered.map((t) => (
           <div
             key={t._id}
-            className="card-soft p-5 bg-white border border-slate-200 flex flex-col justify-between"
+            className="rounded-2xl p-5 bg-[#0B152B]/75 border border-blue-900/60 hover:border-amber-500/50 flex flex-col justify-between transition-all duration-300 shadow-md group"
           >
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -1192,7 +1195,7 @@ function TestimonialsTab({
                 </span>
                 <span className="text-amber-500 font-bold text-xs">★ {t.rating} / 5</span>
               </div>
-              <p className="text-xs text-slate-600 italic leading-relaxed line-clamp-4">
+              <p className="text-xs text-blue-200/80 italic leading-relaxed line-clamp-4">
                 &ldquo;{t.review}&rdquo;
               </p>
             </div>
@@ -1203,7 +1206,7 @@ function TestimonialsTab({
                   {t.initials || t.name[0]}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-xs font-bold text-foreground truncate">{t.name}</h4>
+                  <h4 className="text-xs font-bold text-white truncate">{t.name}</h4>
                   <p className="text-[11px] text-muted-foreground truncate">
                     {t.role} {t.company ? `· ${t.company}` : ""}
                   </p>
@@ -1224,7 +1227,7 @@ function TestimonialsTab({
                   {t.status !== "rejected" && (
                     <button
                       onClick={() => onReject(t._id)}
-                      className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 hover:bg-slate-100"
+                      className="rounded-lg border border-blue-900/60 bg-[#070F1E] px-2.5 py-1 text-[11px] font-bold text-blue-200 hover:bg-white/10"
                     >
                       Reject
                     </button>
@@ -1233,7 +1236,7 @@ function TestimonialsTab({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => onView(t)}
-                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-brand hover:text-brand shadow-xs transition-colors"
+                    className="inline-flex items-center gap-1 rounded-lg border border-blue-900/60 bg-[#0B152B] px-2.5 py-1 text-xs font-semibold text-blue-200 hover:border-amber-500 hover:text-amber-400 shadow-xs transition-colors"
                     title="View full review"
                   >
                     <Icon name="eye" className="size-3.5" />
@@ -1241,7 +1244,7 @@ function TestimonialsTab({
                   </button>
                   <button
                     onClick={() => onEdit(t)}
-                    className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-brand"
+                    className="p-1.5 rounded-lg text-slate-400 hover:bg-white/10 hover:text-amber-400"
                     title="Edit testimonial"
                   >
                     <Icon name="edit" className="size-4" />
@@ -1261,7 +1264,7 @@ function TestimonialsTab({
       </div>
 
       {filtered.length === 0 && (
-        <div className="card-soft p-12 text-center bg-white text-muted-foreground text-sm">
+        <div className="rounded-2xl p-12 text-center bg-[#0B152B]/60 border border-blue-900/50 text-blue-200/70 text-sm">
           No testimonials in this category.
         </div>
       )}
@@ -1296,28 +1299,28 @@ function EnquiriesTab({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-xl font-bold text-foreground">Client Inquiries</h2>
+        <h2 className="font-display text-xl font-bold text-white">Client Inquiries</h2>
         <p className="text-xs text-muted-foreground">
           Inquiries submitted via the Contact form are stored here and emailed via Nodemailer.
         </p>
       </div>
 
-      <div className="card-soft divide-y divide-slate-100 overflow-hidden bg-white border border-slate-200">
+      <div className="rounded-2xl divide-y divide-blue-900/40 overflow-hidden bg-[#0B152B]/75 border border-blue-900/60 shadow-xl">
         {enquiries.length === 0 && (
           <div className="p-8 text-center text-sm text-muted-foreground">No inquiries received yet.</div>
         )}
         {enquiries.map((e) => (
-          <div key={e.id} className="p-5 transition-colors hover:bg-slate-50/70">
+          <div key={e.id} className="p-5 transition-colors hover:bg-white/[0.03]">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <span
                   className={`size-2.5 rounded-full ${
-                    !e.read ? "bg-brand animate-pulse" : "bg-slate-300"
+                    !e.read ? "bg-brand animate-pulse" : "bg-blue-900/60"
                   }`}
                   title={!e.read ? "Unread" : "Read"}
                 />
                 <div>
-                  <h4 className="font-bold text-sm text-foreground">
+                  <h4 className="font-bold text-sm text-white">
                     {e.subject} <span className="font-normal text-slate-500">— {e.name}</span>
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -1338,7 +1341,7 @@ function EnquiriesTab({
                 </button>
                 <button
                   onClick={() => onToggleRead(e.id, !e.read)}
-                  className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                  className="rounded-lg border border-blue-900/60 px-2.5 py-1 text-xs font-semibold text-blue-200 hover:bg-white/10"
                 >
                   {e.read ? "Mark unread" : "Mark read"}
                 </button>
@@ -1353,8 +1356,8 @@ function EnquiriesTab({
             </div>
 
             {openId === e.id && (
-              <div className="mt-4 rounded-2xl bg-slate-50 p-5 border border-slate-200/80 text-xs sm:text-sm space-y-3 animate-in fade-in">
-                <div className="grid sm:grid-cols-2 gap-2 text-slate-600 pb-2 border-b border-slate-200">
+              <div className="mt-4 rounded-2xl bg-[#070F1E] p-5 border border-blue-900/60 text-xs sm:text-sm space-y-3 animate-in fade-in text-white">
+                <div className="grid sm:grid-cols-2 gap-2 text-blue-200/70 pb-2 border-b border-blue-900/40">
                   <p>
                     <strong>Company:</strong> {e.company || "Not specified"}
                   </p>
@@ -1370,8 +1373,8 @@ function EnquiriesTab({
                   </p>
                 </div>
                 <div>
-                  <strong className="block text-slate-700 mb-1">Message Content:</strong>
-                  <p className="whitespace-pre-wrap text-slate-800 leading-relaxed bg-white p-3 rounded-xl border border-slate-200">
+                  <strong className="block text-blue-200 mb-1">Message Content:</strong>
+                  <p className="whitespace-pre-wrap text-slate-200 leading-relaxed bg-[#0B152B] p-3 rounded-xl border border-blue-900/60">
                     {e.message}
                   </p>
                 </div>
@@ -1431,9 +1434,9 @@ function FooterCompanyTab({
   };
 
   return (
-    <div className="card-soft p-6 md:p-8 bg-white border border-slate-200 max-w-3xl space-y-6">
+    <div className="rounded-2xl p-6 md:p-8 bg-[#0B152B]/75 border border-blue-900/60 max-w-3xl space-y-6 shadow-xl">
       <div>
-        <h2 className="font-display text-xl font-bold text-foreground">Footer & Company Settings</h2>
+        <h2 className="font-display text-xl font-bold text-white">Footer & Company Settings</h2>
         <p className="text-xs text-muted-foreground">
           Update the corporate contact information, address lines, and footer lockup across the website.
         </p>
@@ -1601,10 +1604,10 @@ function SettingsTab({
   return (
     <div className="space-y-8 max-w-3xl">
       {/* Maintenance Mode Card */}
-      <div className="card-soft p-6 md:p-8 bg-white border border-slate-200 space-y-5">
+      <div className="rounded-2xl p-6 md:p-8 bg-[#0B152B]/75 border border-blue-900/60 space-y-5 shadow-xl">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h3 className="font-display text-lg font-bold text-foreground">Website Maintenance Mode</h3>
+            <h3 className="font-display text-lg font-bold text-white">Website Maintenance Mode</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
               When turned ON, public visitors are shown a maintenance screen while you maintain access to the admin panel.
             </p>
@@ -1615,7 +1618,7 @@ function SettingsTab({
             onClick={handleToggleMaintenance}
             title={maintenanceMode ? "Click to turn OFF" : "Click to turn ON"}
             className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
-              maintenanceMode ? "bg-amber-500" : "bg-slate-300"
+              maintenanceMode ? "bg-amber-500" : "bg-[#070F1E] border border-blue-900/60"
             }`}
           >
             <span
@@ -1629,8 +1632,8 @@ function SettingsTab({
         <div
           className={`p-4 rounded-2xl border text-xs sm:text-sm font-semibold flex items-center justify-between gap-3 ${
             maintenanceMode
-              ? "bg-amber-50 border-amber-200 text-amber-900"
-              : "bg-emerald-50 border-emerald-200 text-emerald-900"
+              ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+              : "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
           }`}
         >
           <div className="flex items-center gap-3">
@@ -1667,7 +1670,7 @@ function SettingsTab({
               href="/?preview_maintenance=true"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-brand hover:text-brand shadow-xs transition-colors"
+              className="inline-flex items-center gap-1 rounded-lg border border-blue-900/60 bg-[#070F1E] px-2.5 py-1 text-xs font-semibold text-blue-200 hover:border-amber-500 hover:text-amber-400 shadow-xs transition-colors"
             >
               Preview Screen ↗
             </a>
@@ -1696,9 +1699,9 @@ function SettingsTab({
       </div>
 
       {/* Social Media Links Card */}
-      <div className="card-soft p-6 md:p-8 bg-white border border-slate-200 space-y-5">
+      <div className="rounded-2xl p-6 md:p-8 bg-[#0B152B]/75 border border-blue-900/60 space-y-5 shadow-xl">
         <div>
-          <h3 className="font-display text-lg font-bold text-foreground">Social Media Links</h3>
+          <h3 className="font-display text-lg font-bold text-white">Social Media Links</h3>
           <p className="text-xs text-muted-foreground">
             Connect your official brand channels displayed in the footer and navbar.
           </p>
@@ -1752,7 +1755,7 @@ function SettingsTab({
           </div>
         </div>
 
-        <div className="pt-4 border-t border-slate-100 flex justify-end">
+        <div className="pt-4 border-t border-blue-900/40 flex justify-end">
           <button onClick={saveSettings} className="btn btn-gradient">
             Save All Settings
           </button>
@@ -1781,20 +1784,16 @@ function ProjectFormModal({
   onSave: (data: any) => Promise<void>;
 }) {
   const STANDARD_CATEGORIES = [
-    "Websites",
-    "ERP",
-    "CRM",
-    "AI Projects",
-    "Mobile Apps",
-    "Graphic Design",
-    "Branding",
-    "E-Commerce",
-    "E-Learning",
+    "Dynamic Portfolio",
+    "Static Portfolio",
+    "Ecommerce",
+    "Custom Software",
+    "Mobile Application",
   ];
 
   const initialIsCustom = Boolean(initial?.category && !STANDARD_CATEGORIES.includes(initial.category));
   const [title, setTitle] = useState(initial?.title || "");
-  const [category, setCategory] = useState(initialIsCustom ? "Custom" : (initial?.category || "Websites"));
+  const [category, setCategory] = useState(initialIsCustom ? "Custom" : (initial?.category || "Dynamic Portfolio"));
   const [customCategory, setCustomCategory] = useState(initialIsCustom ? (initial?.category || "") : "");
   const [href, setHref] = useState(initial?.href || "");
   const [image, setImage] = useState(initial?.image || "");
@@ -1849,16 +1848,16 @@ function ProjectFormModal({
       onClick={onClose}
     >
       <div
-        className="card-soft w-full max-w-xl p-6 sm:p-8 bg-white my-8 animate-in fade-in zoom-in-95"
+        className="w-full max-w-xl rounded-3xl p-6 sm:p-8 bg-[#0B152B] border border-blue-900/80 my-8 shadow-2xl animate-in fade-in zoom-in-95 text-white"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <h2 className="font-display text-xl font-bold text-foreground">
+        <div className="flex items-center justify-between border-b border-blue-900/40 pb-4">
+          <h2 className="font-display text-xl font-bold text-white">
             {mode === "add" ? "Add New Portfolio Project" : "Edit Project"}
           </h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-800"
+            className="rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
           >
             <Icon name="close" className="size-5" />
           </button>
@@ -1884,15 +1883,11 @@ function ProjectFormModal({
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
-                <option value="Websites">Websites</option>
-                <option value="ERP">ERP</option>
-                <option value="CRM">CRM</option>
-                <option value="AI Projects">AI Projects</option>
-                <option value="Mobile Apps">Mobile Apps</option>
-                <option value="Graphic Design">Graphic Design</option>
-                <option value="Branding">Branding</option>
-                <option value="E-Commerce">E-Commerce</option>
-                <option value="E-Learning">E-Learning</option>
+                <option value="Dynamic Portfolio">Dynamic Portfolio</option>
+                <option value="Static Portfolio">Static Portfolio</option>
+                <option value="Ecommerce">Ecommerce</option>
+                <option value="Custom Software">Custom Software</option>
+                <option value="Mobile Application">Mobile Application</option>
                 <option value="Custom">+ Custom / Other Category</option>
               </select>
               {category === "Custom" && (
@@ -1918,8 +1913,13 @@ function ProjectFormModal({
 
           {/* Image & Cloudinary Upload */}
           <div>
-            <label className="label">Project Image *</label>
-            <div className="flex gap-2">
+            <div className="flex items-center justify-between">
+              <label className="label mb-0">Project Image *</label>
+              <span className="text-[11px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                16:9 • 1920 × 1080 px
+              </span>
+            </div>
+            <div className="flex gap-2 mt-1">
               <input
                 className="field flex-1"
                 required
@@ -1948,10 +1948,23 @@ function ProjectFormModal({
                 />
               </label>
               {image && (
-                <div className="size-10 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+                <div className="size-10 rounded-lg overflow-hidden border border-blue-900/60 shrink-0">
                   <img src={image} alt="preview" className="size-full object-cover" />
                 </div>
               )}
+            </div>
+
+            {/* Optimal Resolution & Ratio Guidance Box */}
+            <div className="mt-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 p-2.5 text-xs text-amber-200/90 flex items-start gap-2">
+              <span className="text-sm">📐</span>
+              <div>
+                <p className="font-semibold text-amber-300">
+                  Optimal Dimensions: <strong>16:9 Aspect Ratio (1920 × 1080 px)</strong>
+                </p>
+                <p className="text-[11px] text-slate-300 mt-0.5">
+                  Screenshots in 16:9 widescreen fit edge-to-edge with zero cropping or empty black borders. PNG or WebP format recommended for sharpest text clarity.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -1984,7 +1997,7 @@ function ProjectFormModal({
               onChange={(e) => setShowIn360(e.target.checked)}
               className="size-4 text-brand rounded"
             />
-            <label htmlFor="chk360" className="text-xs font-semibold text-slate-700 cursor-pointer">
+            <label htmlFor="chk360" className="text-xs font-semibold text-blue-200 cursor-pointer">
               Show in 360° Digital Solution section carousel as well
             </label>
           </div>
@@ -2052,12 +2065,12 @@ function Slide360Modal({
       onClick={onClose}
     >
       <div
-        className="card-soft w-full max-w-md max-h-[90vh] overflow-y-auto p-5 sm:p-6 bg-white animate-in fade-in zoom-in-95"
+        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl p-5 sm:p-6 bg-[#0B152B] border border-blue-900/80 shadow-2xl animate-in fade-in zoom-in-95 text-white"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <h3 className="font-display text-lg font-bold">Add 360° Section Image</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700">
+          <button onClick={onClose} className="text-slate-400 hover:text-blue-200">
             <Icon name="close" className="size-5" />
           </button>
         </div>
@@ -2074,9 +2087,14 @@ function Slide360Modal({
           </div>
 
           <div>
-            <label className="label">Image URL / Cloudinary Upload *</label>
+            <div className="flex items-center justify-between">
+              <label className="label mb-0">Image URL / Cloudinary Upload *</label>
+              <span className="text-[11px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                16:9 • 1920 × 1080 px
+              </span>
+            </div>
             <input
-              className="field"
+              className="field mt-1"
               required
               value={src}
               onChange={(e) => setSrc(e.target.value)}
@@ -2094,10 +2112,23 @@ function Slide360Modal({
                 />
               </label>
               {src && (
-                <div className="size-10 rounded-full overflow-hidden border border-slate-200 shrink-0">
+                <div className="size-10 rounded-full overflow-hidden border border-blue-900/60 shrink-0">
                   <img src={src} alt="preview" className="size-full object-cover" />
                 </div>
               )}
+            </div>
+
+            {/* Optimal Resolution & Ratio Guidance Box */}
+            <div className="mt-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 p-2.5 text-xs text-amber-200/90 flex items-start gap-2">
+              <span className="text-sm">📐</span>
+              <div>
+                <p className="font-semibold text-amber-300">
+                  Optimal Dimensions: <strong>16:9 Aspect Ratio (1920 × 1080 px)</strong>
+                </p>
+                <p className="text-[11px] text-slate-300 mt-0.5">
+                  Screenshots uploaded in 16:9 display full width without clipping or black letterbox borders.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -2155,14 +2186,14 @@ function TestimonialModal({
       onClick={onClose}
     >
       <div
-        className="card-soft w-full max-w-lg p-6 bg-white animate-in fade-in zoom-in-95 my-8"
+        className="w-full max-w-lg rounded-3xl p-6 bg-[#0B152B] border border-blue-900/80 shadow-2xl animate-in fade-in zoom-in-95 my-8 text-white"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <h3 className="font-display text-lg font-bold">
             {mode === "add" ? "Add New Testimonial" : "Edit Testimonial"}
           </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700">
+          <button onClick={onClose} className="text-slate-400 hover:text-blue-200">
             <Icon name="close" className="size-5" />
           </button>
         </div>
@@ -2271,26 +2302,26 @@ function ProjectViewModal({
       onClick={onClose}
     >
       <div
-        className="card-soft w-full max-w-2xl p-6 sm:p-8 bg-white my-8 animate-in fade-in zoom-in-95"
+        className="w-full max-w-2xl rounded-3xl p-6 sm:p-8 bg-[#0B152B] border border-blue-900/80 shadow-2xl my-8 animate-in fade-in zoom-in-95 text-white"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="flex items-center justify-between border-b border-blue-900/40 pb-4">
           <div className="flex items-center gap-2">
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
               <Icon name="eye" className="size-4" />
             </span>
-            <h3 className="font-display text-lg font-bold text-foreground">Project Details</h3>
+            <h3 className="font-display text-lg font-bold text-white">Project Details</h3>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-800"
+            className="rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
           >
             <Icon name="close" className="size-5" />
           </button>
         </div>
 
         <div className="mt-5 space-y-5">
-          <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+          <div className="relative aspect-video rounded-2xl overflow-hidden bg-[#070F1E] border border-blue-900/60">
             <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
             <div className="absolute top-3 left-3 flex gap-2">
               <span className="rounded-full bg-navy/85 backdrop-blur-md px-3 py-1 text-xs font-bold text-white">
@@ -2305,8 +2336,8 @@ function ProjectViewModal({
           </div>
 
           <div>
-            <h2 className="font-display text-2xl font-bold text-foreground">{project.title}</h2>
-            <p className="mt-2 text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+            <h2 className="font-display text-2xl font-bold text-white">{project.title}</h2>
+            <p className="mt-2 text-sm text-blue-200/80 leading-relaxed whitespace-pre-wrap">
               {project.description || "No detailed description provided."}
             </p>
           </div>
@@ -2318,7 +2349,7 @@ function ProjectViewModal({
                 {project.tags.map((t) => (
                   <span
                     key={t}
-                    className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700"
+                    className="rounded-full border border-blue-900/60 bg-white/5 px-3 py-1 text-xs font-semibold text-blue-200"
                   >
                     {t}
                   </span>
@@ -2327,7 +2358,7 @@ function ProjectViewModal({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4 rounded-xl bg-slate-50 p-4 border border-slate-100 text-xs">
+          <div className="grid grid-cols-2 gap-4 rounded-xl bg-[#070F1E] p-4 border border-blue-900/40 text-xs text-blue-200/80">
             <div>
               <span className="text-slate-400 block font-medium">Live Website URL</span>
               {project.href && project.href !== "#" ? (
@@ -2345,7 +2376,7 @@ function ProjectViewModal({
             </div>
             <div>
               <span className="text-slate-400 block font-medium">Database Document ID</span>
-              <span className="font-mono text-slate-600 mt-0.5 block truncate">
+              <span className="font-mono text-blue-200/80 mt-0.5 block truncate">
                 {project._id || project.id || "N/A"}
               </span>
             </div>
@@ -2413,19 +2444,19 @@ function TestimonialViewModal({
       onClick={onClose}
     >
       <div
-        className="card-soft w-full max-w-lg p-6 sm:p-8 bg-white my-8 animate-in fade-in zoom-in-95"
+        className="w-full max-w-lg rounded-3xl p-6 sm:p-8 bg-[#0B152B] border border-blue-900/80 shadow-2xl my-8 animate-in fade-in zoom-in-95 text-white"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="flex items-center justify-between border-b border-blue-900/40 pb-4">
           <div className="flex items-center gap-2">
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
               <Icon name="eye" className="size-4" />
             </span>
-            <h3 className="font-display text-lg font-bold text-foreground">Review Details</h3>
+            <h3 className="font-display text-lg font-bold text-white">Review Details</h3>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-800"
+            className="rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
           >
             <Icon name="close" className="size-5" />
           </button>
@@ -2452,8 +2483,8 @@ function TestimonialViewModal({
             </div>
           </div>
 
-          <div className="rounded-2xl bg-slate-50 p-5 border border-slate-200">
-            <p className="text-sm italic leading-relaxed text-slate-800 whitespace-pre-wrap">
+          <div className="rounded-2xl bg-[#070F1E] p-5 border border-blue-900/60 text-white">
+            <p className="text-sm italic leading-relaxed text-white whitespace-pre-wrap">
               &ldquo;{testimonial.review}&rdquo;
             </p>
           </div>
@@ -2463,7 +2494,7 @@ function TestimonialViewModal({
               {testimonial.initials || testimonial.name[0]}
             </span>
             <div>
-              <h4 className="font-display text-base font-bold text-foreground">{testimonial.name}</h4>
+              <h4 className="font-display text-base font-bold text-white">{testimonial.name}</h4>
               <p className="text-xs text-muted-foreground">
                 {testimonial.role ? testimonial.role : "Client"}
                 {testimonial.company ? ` · ${testimonial.company}` : ""}
@@ -2543,12 +2574,12 @@ function Slide360ViewModal({
       onClick={onClose}
     >
       <div
-        className="card-soft w-full max-w-md p-6 bg-white animate-in fade-in zoom-in-95 my-8"
+        className="w-full max-w-md rounded-3xl p-6 bg-[#0B152B] border border-blue-900/80 shadow-2xl animate-in fade-in zoom-in-95 my-8 text-white"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <h3 className="font-display text-lg font-bold">360° Slide Preview</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700">
+          <button onClick={onClose} className="text-slate-400 hover:text-blue-200">
             <Icon name="close" className="size-5" />
           </button>
         </div>
@@ -2558,13 +2589,13 @@ function Slide360ViewModal({
             <img src={slide.src} alt={slide.alt} className="size-full object-cover" />
           </div>
           <div>
-            <h4 className="font-bold text-base text-foreground">{slide.title || "Showcase Slide"}</h4>
+            <h4 className="font-bold text-base text-white">{slide.title || "Showcase Slide"}</h4>
             <p className="text-xs text-muted-foreground mt-1">{slide.alt}</p>
           </div>
           <div className="flex justify-center gap-2">
             <span
               className={`rounded-full px-3 py-1 text-xs font-bold ${
-                slide.active !== false ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-700"
+                slide.active !== false ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold" : "bg-white/10 text-slate-300 border border-white/10"
               }`}
             >
               {slide.active !== false ? "Active in Carousel" : "Inactive"}

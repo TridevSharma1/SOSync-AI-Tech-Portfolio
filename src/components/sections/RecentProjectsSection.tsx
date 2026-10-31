@@ -5,14 +5,11 @@ import { useSiteData } from "@/context/SiteDataContext";
 
 const BASE_CATEGORIES = [
   "All",
-  "Websites",
-  "ERP",
-  "CRM",
-  "AI Projects",
-  "Mobile Apps",
-  "Graphic Design",
-  "Branding",
-  "E-Commerce",
+  "Dynamic Portfolio",
+  "Static Portfolio",
+  "Ecommerce",
+  "Custom Software",
+  "Mobile Application",
 ] as const;
 
 const PAGE_SIZE = 50;
@@ -44,17 +41,26 @@ export function RecentProjectsSection() {
 
   const filtered = useMemo(() => {
     return projectList.filter((p) => {
-      if (activeCategory === "All") return true;
+      if (activeCategory === "All" || activeCategory.toLowerCase() === "all") return true;
       const cat = (p.category || "").trim().toLowerCase();
       const act = activeCategory.trim().toLowerCase();
-      if (act === "erp") return cat.includes("erp");
-      if (act === "websites") return cat.includes("web") || cat.includes("learning");
-      if (act === "crm") return cat.includes("crm");
-      if (act === "ai projects" || act === "ai") return cat.includes("ai");
-      if (act === "mobile apps" || act === "mobile") return cat.includes("mobile") || cat.includes("app");
-      if (act === "graphic design" || act === "graphics") return cat.includes("graphic") || cat.includes("design");
-      if (act === "branding") return cat.includes("brand");
-      if (act === "e-commerce") return cat.includes("commerce");
+
+      if (act === "dynamic portfolio") {
+        return cat.includes("dynamic");
+      }
+      if (act === "static portfolio") {
+        return cat.includes("static");
+      }
+      if (act === "ecommerce") {
+        return cat.includes("ecom") || cat.includes("commerce");
+      }
+      if (act === "custom software") {
+        return cat.includes("custom") || cat.includes("software") || cat.includes("erp") || cat.includes("crm");
+      }
+      if (act === "mobile application") {
+        return cat.includes("mobile") || cat.includes("app") || cat.includes("application");
+      }
+
       return cat === act || cat.includes(act);
     });
   }, [projectList, activeCategory]);
@@ -72,16 +78,19 @@ export function RecentProjectsSection() {
 
   return (
     <section className="container-px mx-auto max-w-7xl py-12 sm:py-16">
-      {/* Header matching live site */}
+      {/* Header matching dark stage theme */}
       <div className="text-center mx-auto max-w-3xl">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary-soft px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-amber-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
           Portfolio
         </div>
-        <h2 className="text-3xl font-bold leading-[1.1] text-foreground sm:text-4xl lg:text-5xl">
-          Recent <span className="text-gradient-brand">projects</span>
+        <h2 className="text-3xl font-bold leading-[1.1] text-white sm:text-4xl lg:text-5xl font-display">
+          Recent{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-amber-200">
+            projects
+          </span>
         </h2>
-        <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+        <p className="mt-4 text-base leading-relaxed text-blue-200/80 sm:text-lg">
           Explore our recent work by category. Discover how we design, build, and deliver high quality digital solutions for our clients.
         </p>
       </div>
@@ -93,10 +102,10 @@ export function RecentProjectsSection() {
             key={cat}
             type="button"
             onClick={() => handleCategoryChange(cat)}
-            className={`rounded-full px-4 py-2 text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer ${
+            className={`rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
               activeCategory === cat
-                ? "bg-gradient-brand text-primary-foreground shadow-soft"
-                : "border border-border bg-white text-foreground/70 hover:border-primary hover:text-primary"
+                ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-black shadow-lg shadow-amber-500/25 border border-amber-300/60"
+                : "border border-blue-900/60 bg-[#070F1E] text-blue-200/90 hover:border-amber-500/40 hover:text-white"
             }`}
           >
             {cat}
@@ -115,10 +124,10 @@ export function RecentProjectsSection() {
                     href={item.href || "#"}
                     target="_blank"
                     rel="noreferrer"
-                    className="group block overflow-hidden rounded-3xl border border-border bg-white shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant"
+                    className="group block overflow-hidden rounded-3xl border border-blue-900/60 bg-[#0B152B]/90 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/60"
                   >
                     {/* Image + Top-Left Category Badge */}
-                    <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-[#070F1E]">
                       <img
                         alt={item.title}
                         loading="lazy"
@@ -126,7 +135,7 @@ export function RecentProjectsSection() {
                         src={item.image}
                       />
                       <div className="absolute left-4 top-4 flex flex-wrap gap-2 pointer-events-none">
-                        <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-primary backdrop-blur-md shadow-xs">
+                        <span className="rounded-full bg-[#070F1E]/95 px-3 py-1 text-xs font-black uppercase tracking-wider text-amber-400 border border-amber-500/30 backdrop-blur-md shadow-xs">
                           {item.category}
                         </span>
                       </div>
@@ -135,39 +144,45 @@ export function RecentProjectsSection() {
                     {/* Card Content */}
                     <div className="p-6">
                       <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                        <h3 className="text-xl font-bold text-white transition-colors group-hover:text-amber-400 font-display">
                           {item.title}
                         </h3>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="lucide lucide-arrow-up-right mt-1 h-5 w-5 shrink-0 text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
-                          aria-hidden="true"
-                        >
-                          <path d="M7 7h10v10" />
-                          <path d="M7 17 17 7" />
-                        </svg>
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-amber-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="lucide lucide-external-link h-4 w-4"
+                            aria-hidden="true"
+                          >
+                            <path d="M15 3h6v6" />
+                            <path d="M10 14 21 3" />
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                          </svg>
+                        </div>
                       </div>
+
                       {item.description && (
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+                        <p className="mt-2.5 text-xs sm:text-sm text-blue-200/70 line-clamp-2 leading-relaxed">
                           {item.description}
                         </p>
                       )}
+
+                      {/* Tags */}
                       {item.tags && item.tags.length > 0 && (
                         <div className="mt-4 flex flex-wrap gap-1.5">
-                          {item.tags.map((tag) => (
+                          {item.tags.map((t) => (
                             <span
-                              key={tag}
-                              className="rounded-full border border-border bg-surface-soft px-2.5 py-1 text-xs font-medium text-foreground/70"
+                              key={t}
+                              className="rounded-full bg-[#070F1E] border border-blue-900/50 px-2.5 py-0.5 text-[10px] font-semibold text-blue-200/90"
                             >
-                              {tag}
+                              {t}
                             </span>
                           ))}
                         </div>
@@ -178,77 +193,24 @@ export function RecentProjectsSection() {
               ))}
             </div>
 
-            {/* Load More / Infinite Projects Controls */}
-            {filtered.length > PAGE_SIZE && (
-              <div className="mt-12 flex flex-col items-center justify-center gap-4 text-center">
-                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                  <span>
-                    Showing {visibleProjects.length} of {filtered.length} projects
-                  </span>
-                  <span className="inline-block h-1 w-1 rounded-full bg-muted-foreground/40" />
-                  <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
-                    <div
-                      className="h-full bg-gradient-brand transition-all duration-300"
-                      style={{ width: `${Math.min(100, Math.round((visibleProjects.length / filtered.length) * 100))}%` }}
-                    />
-                  </div>
-                </div>
-
-                {hasMore ? (
-                  <div className="flex flex-wrap items-center justify-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-                      className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-3 text-sm font-semibold text-white shadow-soft transition-all duration-200 hover:shadow-hover hover:-translate-y-0.5 cursor-pointer"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
-                      Load More Projects
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setVisibleCount(filtered.length)}
-                      className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-5 py-3 text-sm font-semibold text-foreground/80 shadow-xs transition-all duration-200 hover:border-primary hover:text-primary cursor-pointer"
-                    >
-                      Show All ({filtered.length})
-                    </button>
-                  </div>
-                ) : (
-                  <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-xs font-semibold text-emerald-700">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    All {filtered.length} projects displayed
-                  </div>
-                )}
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="mt-12 text-center">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+                  className="rounded-full border border-amber-500/50 bg-amber-500/10 px-8 py-3 text-sm font-bold text-amber-400 shadow-sm transition-all hover:bg-amber-500 hover:text-black cursor-pointer"
+                >
+                  Load More Projects ({filtered.length - visibleCount} remaining)
+                </button>
               </div>
             )}
           </>
         ) : (
-          <div className="card-soft p-12 bg-white text-center rounded-3xl border border-slate-200">
-            <p className="text-base font-semibold text-slate-700">No projects found in this category.</p>
-            <p className="text-xs text-muted-foreground mt-1">Projects added from the admin portal will appear here.</p>
+          <div className="rounded-3xl border border-blue-900/40 bg-[#0B152B]/40 py-16 text-center">
+            <p className="text-base text-blue-200/80 font-medium">
+              No projects found in this category yet.
+            </p>
           </div>
         )}
       </div>
