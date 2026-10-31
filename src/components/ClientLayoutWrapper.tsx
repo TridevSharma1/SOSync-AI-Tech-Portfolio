@@ -19,7 +19,7 @@ export function ClientLayoutWrapper({ children }: { children: ReactNode }) {
   // Show maintenance screen to regular visitors on ALL pages when maintenanceMode is active:
   // - Authenticated admins (isAdmin === true) can view the site and admin portal.
   // - The /admin/login route remains available strictly for the administrator to sign in.
-  // - ALL other pages (/, /portfolio, /our-story, /contact, /admin, etc.) are blocked.
+  // - ALL other pages (/, /portfolio, /our-story, /why-sosync, /admin, etc.) are blocked.
   if (
     isPreview ||
     ((authReady || typeof window !== "undefined") &&

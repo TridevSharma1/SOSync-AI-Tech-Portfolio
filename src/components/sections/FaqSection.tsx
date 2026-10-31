@@ -56,10 +56,10 @@ export function FaqSection() {
             description="Everything clients usually ask before starting a project. Still unsure? We're one call away."
           />
           <Reveal delay={150}>
-            <Link href="/contact" className="btn btn-gradient mt-8">
-              Ask Us Directly
-              <Icon name="arrow-right" className="size-4" />
-            </Link>
+            <a href="tel:+919172403714" className="btn btn-gradient mt-8">
+              <Icon name="phone" className="size-4" />
+              Call Us Directly
+            </a>
           </Reveal>
         </div>
         <div className="space-y-4">

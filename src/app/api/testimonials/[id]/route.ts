@@ -3,6 +3,8 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { TestimonialModel } from "@/models/Testimonial";
 import { isAuthenticatedAdmin } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

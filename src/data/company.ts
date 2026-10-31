@@ -17,9 +17,10 @@ export const companyInfo: CompanyInfo = {
 };
 
 export const socialLinks: SocialLinks = {
-  linkedin: "https://www.linkedin.com/",
+  linkedin: "https://www.linkedin.com/company/sosyncaitech/posts/?feedView=all",
   twitter: "https://twitter.com/",
-  instagram: "https://www.instagram.com/",
+  instagram: "https://www.instagram.com/sosyncaitech_multimediaa?obrf=MWtxODgwdGo2YWpzZg==",
   facebook: "https://www.facebook.com/",
   github: "https://github.com/",
+  youtube: "https://www.youtube.com/@SOSyncAITech",
 };

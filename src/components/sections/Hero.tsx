@@ -40,14 +40,13 @@ export function Hero() {
               {hero.subheading}
             </p>
             <div className="mt-7 sm:mt-8 flex flex-col xs:flex-row items-stretch xs:items-center gap-3 sm:gap-4">
-              <Link href="/contact" className="btn btn-gradient justify-center">
-                {hero.primaryCta}
-                <Icon name="arrow-right" className="size-4" />
-              </Link>
-              <a href={`tel:${company.phones[0]?.replace(/\s/g, "")}`} className="btn btn-ghost-light justify-center">
+              <a href={`tel:${company.phones[0]?.replace(/\s/g, "") || "+919172403714"}`} className="btn btn-gradient justify-center">
                 <Icon name="phone" className="size-4" />
-                {hero.secondaryCta}
+                Call Us Directly
               </a>
+              <Link href="/portfolio" className="btn btn-ghost-light justify-center">
+                Explore Our Work
+              </Link>
             </div>
           </Reveal>
 

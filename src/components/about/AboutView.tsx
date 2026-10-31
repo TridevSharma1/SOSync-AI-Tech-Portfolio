@@ -524,13 +524,13 @@ export function AboutView() {
 
               {/* Phone Secondary */}
               <a
-                href="tel:+918010340822"
+                href="tel:+917004330655"
                 className="p-5 rounded-2xl bg-[#070F1E]/80 border border-blue-900/50 hover:border-amber-500/50 hover:bg-[#070F1E] transition-all flex items-center justify-between group shadow-sm"
               >
                 <div className="space-y-1">
                   <p className="text-[11px] font-black uppercase tracking-widest text-blue-200/70">SECONDARY CALL</p>
                   <p className="text-base sm:text-lg font-extrabold text-white group-hover:text-amber-400 transition-colors">
-                    +91 80103 40822
+                    +91 70043 30655
                   </p>
                 </div>
                 <div className="size-9 rounded-full bg-amber-500/10 group-hover:bg-amber-500 text-amber-400 group-hover:text-black flex items-center justify-center transition-all shrink-0">
@@ -574,16 +574,16 @@ export function AboutView() {
                 Ready to build custom websites, applications or scaling your marketing?
               </p>
               <div className="flex items-center gap-3 w-full sm:w-auto">
-                <Link
-                  href="/contact"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-2.5 text-xs sm:text-sm font-extrabold text-black shadow-lg shadow-amber-500/25 transition-all hover:scale-105"
+                <a
+                  href="tel:+919172403714"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500 px-6 py-2.5 text-xs sm:text-sm font-extrabold text-black shadow-lg shadow-orange-500/35 hover:shadow-orange-500/50 transition-all hover:scale-105"
                 >
-                  <span>Book Demo</span>
-                  <ArrowRight size={14} />
-                </Link>
+                  <Phone size={14} />
+                  <span>Call Us Directly</span>
+                </a>
                 <Link
                   href="/portfolio"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border border-blue-900/60 bg-[#070F1E] hover:bg-[#0E1A34] px-5 py-2.5 text-xs sm:text-sm font-bold text-white transition-all hover:border-amber-500/40"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border border-blue-900/60 bg-[#070F1E] hover:bg-[#0E1A34] px-5 py-2.5 text-xs sm:text-sm font-bold text-white transition-all hover:border-orange-500/60"
                 >
                   <span>Our Work</span>
                 </Link>

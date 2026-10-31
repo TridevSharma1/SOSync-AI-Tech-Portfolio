@@ -9,6 +9,7 @@ export interface ISiteSettings extends Document {
     instagram: string;
     facebook: string;
     github: string;
+    youtube?: string;
   };
   company: {
     name: string;
@@ -32,11 +33,12 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
         "We are currently performing scheduled maintenance and updates. Our team will be back online shortly.",
     },
     social: {
-      linkedin: { type: String, default: "https://linkedin.com" },
+      linkedin: { type: String, default: "https://www.linkedin.com/company/sosyncaitech/posts/?feedView=all" },
       twitter: { type: String, default: "https://twitter.com" },
-      instagram: { type: String, default: "https://instagram.com" },
+      instagram: { type: String, default: "https://www.instagram.com/sosyncaitech_multimediaa?obrf=MWtxODgwdGo2YWpzZg==" },
       facebook: { type: String, default: "https://facebook.com" },
       github: { type: String, default: "https://github.com" },
+      youtube: { type: String, default: "https://www.youtube.com/@SOSyncAITech" },
     },
     company: {
       name: { type: String, default: "SOSync Ai Tech IT Solution" },
@@ -47,7 +49,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
           "Transforming businesses through modern AI solutions, software development & digital innovation.",
       },
       email: { type: String, default: "support@sosyncaitech.in" },
-      phones: { type: [String], default: ["+91 91724 03714", "+91 80103 40822"] },
+      phones: { type: [String], default: ["+91 91724 03714", "+91 70043 30655"] },
       addressLines: {
         type: [String],
         default: [

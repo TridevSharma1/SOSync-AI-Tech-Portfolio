@@ -333,11 +333,12 @@ async function audit() {
         },
         body: JSON.stringify({
           social: {
-            linkedin: "https://linkedin.com/company/sosync-ai-tech",
+            linkedin: "https://www.linkedin.com/company/sosyncaitech/posts/?feedView=all",
             twitter: "https://twitter.com/sosyncaitech",
-            instagram: "https://instagram.com/sosyncaitech",
+            instagram: "https://www.instagram.com/sosyncaitech_multimediaa?obrf=MWtxODgwdGo2YWpzZg==",
             facebook: "https://facebook.com/sosyncaitech",
             github: "https://github.com/sosyncaitech",
+            youtube: "https://www.youtube.com/@SOSyncAITech",
           },
           maintenanceMode: false,
         }),

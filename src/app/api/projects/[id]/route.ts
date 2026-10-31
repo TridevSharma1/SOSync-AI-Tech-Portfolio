@@ -4,6 +4,8 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { ProjectModel } from "@/models/Project";
 import { isAuthenticatedAdmin } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

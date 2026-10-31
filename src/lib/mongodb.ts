@@ -12,7 +12,7 @@ try {
 const MONGODB_URL = process.env.MONGODB_URI || process.env.MONGODB_URL;
 
 if (!MONGODB_URL) {
-  console.warn("⚠️ Warning: MONGODB_URL is not defined in environment variables.");
+  console.warn("⚠️ Warning: MONGODB_URI is not defined in environment variables.");
 }
 
 interface MongooseCache {
@@ -34,7 +34,7 @@ if (!cached) {
 
 export async function connectToDatabase() {
   if (!MONGODB_URL) {
-    throw new Error("MONGODB_URL environment variable is missing.");
+    throw new Error("MONGODB_URI environment variable is missing.");
   }
 
   if (cached!.conn) {
@@ -42,9 +42,14 @@ export async function connectToDatabase() {
   }
 
   if (!cached!.promise) {
-    const opts = {
+    // Serverless-optimized Mongoose connection options for Vercel
+    const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
-      maxPoolSize: 10,
+      maxPoolSize: 2, // Keep connection pool small to avoid Atlas limits during traffic spikes
+      minPoolSize: 0,
+      serverSelectionTimeoutMS: 20_000,
+      connectTimeoutMS: 20_000,
+      socketTimeoutMS: 45_000,
     };
 
     cached!.promise = mongoose.connect(MONGODB_URL, opts).then(async (m) => {

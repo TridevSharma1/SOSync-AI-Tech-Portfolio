@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { TestimonialModel } from "@/models/Testimonial";
 import { isAuthenticatedAdmin } from "@/lib/auth";
+import { cdnCacheHeaders, noStoreHeaders } from "@/lib/cdn";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,10 +19,18 @@ export async function GET(req: NextRequest) {
     }
 
     const testimonials = await TestimonialModel.find(filter).sort({ createdAt: -1 });
-    return NextResponse.json({ success: true, testimonials });
+    const headers =
+      isAdmin && all
+        ? noStoreHeaders()
+        : cdnCacheHeaders({ sMaxAge: 120, staleWhileRevalidate: 600 });
+
+    return NextResponse.json({ success: true, testimonials }, { headers });
   } catch (error) {
     console.error("GET /api/testimonials error:", error);
-    return NextResponse.json({ error: "Failed to fetch testimonials" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch testimonials" },
+      { status: 500, headers: noStoreHeaders() }
+    );
   }
 }
 
@@ -32,7 +43,10 @@ export async function POST(req: NextRequest) {
     const { name, company, role, rating, review, initials, status } = body;
 
     if (!name || !review) {
-      return NextResponse.json({ error: "Name and review are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Name and review are required" },
+        { status: 400, headers: noStoreHeaders() }
+      );
     }
 
     const newTestimonial = await TestimonialModel.create({
@@ -47,9 +61,15 @@ export async function POST(req: NextRequest) {
       featured: false,
     });
 
-    return NextResponse.json({ success: true, testimonial: newTestimonial }, { status: 201 });
+    return NextResponse.json(
+      { success: true, testimonial: newTestimonial },
+      { status: 201, headers: noStoreHeaders() }
+    );
   } catch (error) {
     console.error("POST /api/testimonials error:", error);
-    return NextResponse.json({ error: "Failed to create testimonial" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create testimonial" },
+      { status: 500, headers: noStoreHeaders() }
+    );
   }
 }

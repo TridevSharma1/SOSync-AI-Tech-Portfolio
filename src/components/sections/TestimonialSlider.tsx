@@ -46,21 +46,26 @@ export function TestimonialSlider() {
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
           >
-            <div className="relative rounded-3xl border border-blue-900/60 bg-[#0B152B]/90 p-6 sm:p-12 shadow-2xl hover:border-amber-500/50 transition-all duration-300">
-              <Icon name="quote" className="absolute left-4 top-4 sm:left-8 sm:top-8 size-7 sm:size-10 text-amber-500/20" />
+            <div className="relative rounded-3xl border border-blue-900/60 bg-[#0B152B]/90 p-6 sm:p-10 md:p-12 shadow-2xl hover:border-amber-500/50 transition-all duration-300">
               <div key={current.id} className="reveal reveal-visible">
-                <StarRating rating={current.rating} className="justify-center sm:justify-start" />
-                <p className="mt-5 sm:mt-6 text-center text-base sm:text-xl leading-relaxed text-white sm:text-left font-medium">
+                {/* Header: Quote Badge on left, Star Rating on right */}
+                <div className="flex items-center justify-between gap-4 mb-5 sm:mb-6">
+                  <span className="flex size-10 sm:size-12 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/20 shadow-xs">
+                    <Icon name="quote" className="size-5 sm:size-6" />
+                  </span>
+                  <StarRating rating={current.rating} />
+                </div>
+                <p className="text-base sm:text-xl leading-relaxed text-white font-medium">
                   &ldquo;{current.review}&rdquo;
                 </p>
-                <div className="mt-6 sm:mt-8 flex items-center justify-center gap-3 sm:gap-4 sm:justify-start">
+                <div className="mt-6 sm:mt-8 flex items-center gap-3 sm:gap-4">
                   <span className="flex size-12 sm:size-14 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-orange-500 font-display text-base sm:text-lg font-bold text-black shadow-md shrink-0">
                     {current.initials}
                   </span>
                   <div className="text-left">
                     <p className="font-display text-sm sm:text-base font-bold text-white">{current.name}</p>
                     <p className="text-xs sm:text-sm text-blue-200/70">
-                      {current.role}, {current.company}
+                      {[current.role, current.company].filter(Boolean).join(" · ") || "Client"}
                     </p>
                   </div>
                 </div>

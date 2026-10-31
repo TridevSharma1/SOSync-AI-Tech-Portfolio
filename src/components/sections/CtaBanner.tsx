@@ -47,10 +47,10 @@ export function CtaBanner() {
                 Book a free consultation with our senior engineers — no obligation, just clarity.
               </p>
               <div className="mt-7 sm:mt-8 flex flex-col xs:flex-row justify-center items-stretch xs:items-center gap-3 sm:gap-4">
-                <Link href="/contact" className="btn btn-gradient justify-center">
-                  Get a Free Quote
-                  <Icon name="arrow-right" className="size-4" />
-                </Link>
+                <a href="tel:+919172403714" className="btn btn-gradient justify-center">
+                  <Icon name="phone" className="size-4" />
+                  Call Us Directly
+                </a>
                 <Link href="/portfolio" className="btn btn-ghost-light justify-center">
                   See Our Work
                 </Link>

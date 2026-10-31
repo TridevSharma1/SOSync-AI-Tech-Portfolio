@@ -121,7 +121,7 @@ export function TestimonialsView() {
                       <div className="truncate">
                         <p className="font-display text-sm font-bold text-white truncate">{t.name}</p>
                         <p className="text-xs text-blue-200/70 truncate">
-                          {t.role}, {t.company}
+                          {[t.role, t.company].filter(Boolean).join(" · ") || "Client"}
                         </p>
                       </div>
                     </div>

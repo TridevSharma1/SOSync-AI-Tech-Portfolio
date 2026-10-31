@@ -330,16 +330,16 @@ export function WhySOSyncView() {
       <section className="relative z-10 pt-24 sm:pt-32 pb-14 sm:pb-20 text-center container-site">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider shadow-sm mb-5">
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-          <span>WHY CHOOSE US</span>
+          <span>WHY SOSync</span>
         </div>
         <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.15] max-w-4xl mx-auto">
-          Why partner with{" "}
+          Why{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-amber-200">
             SOSync AI Tech?
           </span>
         </h1>
         <p className="mt-6 text-blue-100/90 text-sm sm:text-base md:text-lg max-w-3xl mx-auto leading-relaxed">
-          At <span className="font-extrabold text-amber-400">SOSync AI Tech</span>, we don&apos;t just build websites and software—we build long-term business partnerships. Our goal is to engineer high-velocity digital solutions that help businesses scale, improve efficiency, and achieve measurable commercial results.
+          At <span className="font-extrabold text-amber-400">SOSync AI Tech</span>, we do more than just make websites and software—we work alongside you to help your business succeed. Our goal is to create fast, reliable digital tools that make your daily work easier, speed up your growth, and bring real profits.
         </p>
 
         {/* Quick Highlights Ribbon */}
@@ -364,7 +364,100 @@ export function WhySOSyncView() {
       </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* 2. ACHIEVEMENTS & WHAT SETS US APART (Image 1 Breakdown)           */}
+      {/* 2. 6 MONTHS FREE SUPPORT GUARANTEE                                 */}
+      {/* ------------------------------------------------------------------ */}
+      <section className="relative z-10 py-16 sm:py-24 border-b border-blue-900/40 overflow-hidden">
+        <div className="pointer-events-none absolute top-1/2 left-1/3 -translate-y-1/2 size-[600px] rounded-full bg-amber-500/10 blur-[180px] -z-10" />
+
+        <div className="container-site">
+          {/* Master Highlight Glass Box */}
+          <div className="rounded-3xl border-2 border-amber-500/40 bg-gradient-to-b from-[#0B152B]/95 via-[#070F1E]/95 to-[#0B152B]/95 p-8 sm:p-12 lg:p-14 shadow-[0_25px_60px_rgba(0,0,0,0.8)] ring-1 ring-amber-500/20">
+            {/* Header with Value Badge */}
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-8 border-b border-blue-900/50">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/15 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-amber-400 mb-3 shadow-xs">
+                  <Gift size={14} className="text-amber-400 animate-bounce" />
+                  <span>INCLUDED FREE WITH EVERY PROJECT</span>
+                </div>
+                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
+                  6 Months{" "}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-amber-200">
+                    FREE Support
+                  </span>
+                </h2>
+                <p className="mt-2 text-sm sm:text-base text-amber-200/90 font-semibold">
+                  Included with Every Project — No Hidden Charges & No Surprise Invoices
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-amber-500/15 border border-amber-500/40 px-5 py-3 text-center shrink-0">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-200/80 block">
+                  Complimentary Value
+                </span>
+                <span className="font-mono text-2xl sm:text-3xl font-black text-amber-400">
+                  Worth ₹25,000+
+                </span>
+                <span className="text-[10px] font-bold text-emerald-400 block mt-0.5">
+                  100% Free For 6 Months
+                </span>
+              </div>
+            </div>
+
+            <p className="mt-6 text-sm sm:text-base text-blue-100/80 leading-relaxed max-w-4xl">
+              After successful project delivery and client presentation, we provide 6 months of complimentary technical support to ensure your system operates smoothly, securely, and efficiently.
+            </p>
+
+            {/* Split Grid: Covered Capabilities vs Clear Boundaries */}
+            <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left 2 Cols: 14 Covered Items */}
+              <div className="lg:col-span-2">
+                <h3 className="font-display text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <CheckCircle2 size={18} className="text-emerald-400" />
+                  <span>What is Included in Your Free 6-Month Support:</span>
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {SUPPORT_FEATURES.map((feat, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-start gap-2.5 p-3 rounded-xl bg-[#070F1E]/80 border border-blue-900/40 text-xs sm:text-sm text-blue-100/90"
+                    >
+                      <CheckCircle2 size={15} className="text-amber-400 shrink-0 mt-0.5" />
+                      <span>{feat}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Col: Transparent Terms & Conditions */}
+              <div className="rounded-2xl p-6 bg-[#070F1E]/90 border border-amber-500/20 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-display text-base font-bold text-amber-400 mb-3 flex items-center gap-2">
+                    <HelpCircle size={16} />
+                    <span>Clear Scope & Terms</span>
+                  </h3>
+                  <ul className="space-y-2.5 text-xs text-blue-200/75 leading-relaxed">
+                    {SUPPORT_TERMS.map((term, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-amber-400 font-bold shrink-0">•</span>
+                        <span>{term}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-blue-900/40 text-[11px] text-blue-300/60 leading-normal">
+                  Dedicated assistance during business hours: <br />
+                  <strong className="text-white">Mon – Sat | 9:30 AM – 7:00 PM IST</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* 3. ACHIEVEMENTS & WHAT SETS US APART (Image 1 Breakdown)           */}
       {/* ------------------------------------------------------------------ */}
       <section className="relative z-10 py-14 sm:py-20 border-b border-blue-900/40 overflow-hidden">
         {/* Ambient Backlight Lighting */}
@@ -461,7 +554,7 @@ export function WhySOSyncView() {
       </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* 3. SECTORS WE WORK FOR (15 REQUESTED INDUSTRIES)                   */}
+      {/* 4. SECTORS WE WORK FOR (15 REQUESTED INDUSTRIES)                   */}
       {/* ------------------------------------------------------------------ */}
       <section className="relative z-10 py-16 sm:py-24 border-b border-blue-900/40 overflow-hidden">
         <div className="container-site">
@@ -519,7 +612,7 @@ export function WhySOSyncView() {
       </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/* 4. OUR 9-PHASE DEVELOPMENT PROCESS (Images 2 & 3 Roadmap)          */}
+      {/* 5. OUR 9-PHASE DEVELOPMENT PROCESS (Images 2 & 3 Roadmap)          */}
       {/* ------------------------------------------------------------------ */}
       <section className="relative z-10 py-16 sm:py-24 border-b border-blue-900/40 overflow-hidden">
         <div className="pointer-events-none absolute top-1/3 right-1/4 size-[550px] rounded-full bg-amber-500/10 blur-[170px] -z-10" />
@@ -581,98 +674,7 @@ export function WhySOSyncView() {
         </div>
       </section>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* 5. 6 MONTHS FREE SUPPORT GUARANTEE (Images 2 & 3 Right Side)       */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="relative z-10 py-16 sm:py-24 border-b border-blue-900/40 overflow-hidden">
-        <div className="pointer-events-none absolute top-1/2 left-1/3 -translate-y-1/2 size-[600px] rounded-full bg-amber-500/10 blur-[180px] -z-10" />
 
-        <div className="container-site">
-          {/* Master Highlight Glass Box */}
-          <div className="rounded-3xl border-2 border-amber-500/40 bg-gradient-to-b from-[#0B152B]/95 via-[#070F1E]/95 to-[#0B152B]/95 p-8 sm:p-12 lg:p-14 shadow-[0_25px_60px_rgba(0,0,0,0.8)] ring-1 ring-amber-500/20">
-            {/* Header with Value Badge */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-8 border-b border-blue-900/50">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/15 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-amber-400 mb-3 shadow-xs">
-                  <Gift size={14} className="text-amber-400 animate-bounce" />
-                  <span>INCLUDED FREE WITH EVERY PROJECT</span>
-                </div>
-                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
-                  6 Months{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-amber-200">
-                    FREE Support
-                  </span>
-                </h2>
-                <p className="mt-2 text-sm sm:text-base text-amber-200/90 font-semibold">
-                  Included with Every Project — No Hidden Charges & No Surprise Invoices
-                </p>
-              </div>
-
-              <div className="rounded-2xl bg-amber-500/15 border border-amber-500/40 px-5 py-3 text-center shrink-0">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-200/80 block">
-                  Complimentary Value
-                </span>
-                <span className="font-mono text-2xl sm:text-3xl font-black text-amber-400">
-                  Worth ₹25,000+
-                </span>
-                <span className="text-[10px] font-bold text-emerald-400 block mt-0.5">
-                  100% Free For 6 Months
-                </span>
-              </div>
-            </div>
-
-            <p className="mt-6 text-sm sm:text-base text-blue-100/80 leading-relaxed max-w-4xl">
-              After successful project delivery and client presentation, we provide 6 months of complimentary technical support to ensure your system operates smoothly, securely, and efficiently.
-            </p>
-
-            {/* Split Grid: Covered Capabilities vs Clear Boundaries */}
-            <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left 2 Cols: 14 Covered Items */}
-              <div className="lg:col-span-2">
-                <h3 className="font-display text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <CheckCircle2 size={18} className="text-emerald-400" />
-                  <span>What is Included in Your Free 6-Month Support:</span>
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {SUPPORT_FEATURES.map((feat, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-2.5 p-3 rounded-xl bg-[#070F1E]/80 border border-blue-900/40 text-xs sm:text-sm text-blue-100/90"
-                    >
-                      <CheckCircle2 size={15} className="text-amber-400 shrink-0 mt-0.5" />
-                      <span>{feat}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right Col: Transparent Terms & Conditions */}
-              <div className="rounded-2xl p-6 bg-[#070F1E]/90 border border-amber-500/20 flex flex-col justify-between">
-                <div>
-                  <h3 className="font-display text-base font-bold text-amber-400 mb-3 flex items-center gap-2">
-                    <HelpCircle size={16} />
-                    <span>Clear Scope & Terms</span>
-                  </h3>
-                  <ul className="space-y-2.5 text-xs text-blue-200/75 leading-relaxed">
-                    {SUPPORT_TERMS.map((term, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="text-amber-400 font-bold shrink-0">•</span>
-                        <span>{term}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-blue-900/40 text-[11px] text-blue-300/60 leading-normal">
-                  Dedicated assistance during business hours: <br />
-                  <strong className="text-white">Mon – Sat | 9:30 AM – 7:00 PM IST</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ------------------------------------------------------------------ */}
       {/* 6. CALL TO ACTION (START YOUR ENGAGEMENT)                          */}
@@ -696,16 +698,16 @@ export function WhySOSyncView() {
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/contact"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 px-8 py-3.5 font-extrabold text-black text-sm shadow-xl shadow-amber-500/25 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              <a
+                href="tel:+919172403714"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500 px-8 py-3.5 font-extrabold text-black text-sm shadow-xl shadow-orange-500/35 hover:shadow-orange-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer"
               >
-                <span>Book a Demo</span>
-                <ArrowRight size={16} />
-              </Link>
+                <Phone size={16} />
+                <span>Call Us Directly</span>
+              </a>
               <Link
                 href="/portfolio"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#0B152B] hover:bg-[#070F1E] border border-blue-900/60 hover:border-amber-500/50 px-8 py-3.5 font-bold text-white text-sm transition-all cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#0B152B] hover:bg-[#070F1E] border border-blue-900/60 hover:border-orange-500/60 px-8 py-3.5 font-bold text-white text-sm transition-all cursor-pointer"
               >
                 <span>Explore Our Portfolio</span>
               </Link>
@@ -722,11 +724,35 @@ export function WhySOSyncView() {
               </a>
               <span className="text-blue-900">•</span>
               <a
+                href="tel:+917004330655"
+                className="inline-flex items-center gap-2 hover:text-amber-400 transition-colors"
+              >
+                <Phone size={14} className="text-amber-400" />
+                <span>+91 70043 30655</span>
+              </a>
+              <span className="text-blue-900">•</span>
+              <a
+                href="tel:+917004330655"
+                className="inline-flex items-center gap-2 hover:text-amber-400 transition-colors"
+              >
+                <Phone size={14} className="text-amber-400" />
+                <span>+91 70043 30655</span>
+              </a>
+              <span className="text-blue-900">•</span>
+              <a
                 href="mailto:support@sosyncaitech.in"
                 className="inline-flex items-center gap-2 hover:text-amber-400 transition-colors"
               >
                 <Mail size={14} className="text-amber-400" />
                 <span>support@sosyncaitech.in</span>
+              </a>
+              <span className="text-blue-900">•</span>
+              <a
+                href="tel:+917004330655"
+                className="inline-flex items-center gap-2 hover:text-amber-400 transition-colors"
+              >
+                <Phone size={14} className="text-amber-400" />
+                <span>+91 70043 30655</span>
               </a>
               <span className="text-blue-900">•</span>
               <span>Kharadi, Pune HQ</span>
