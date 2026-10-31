@@ -327,7 +327,7 @@ export function WhySOSyncView() {
       {/* ------------------------------------------------------------------ */}
       {/* 1. HERO HEADER: WHY PARTNER WITH SOSYNC AI TECH                    */}
       {/* ------------------------------------------------------------------ */}
-      <section className="relative z-10 pt-24 sm:pt-32 pb-14 sm:pb-20 text-center container-site">
+      <section className="relative z-10 pt-8 sm:pt-12 pb-14 sm:pb-20 text-center container-site">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider shadow-sm mb-5">
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
           <span>WHY SOSync</span>

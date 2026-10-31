@@ -60,7 +60,7 @@ export function Navbar({ lightTop: _lightTop = false }: NavbarProps) {
 
   return (
     <header
-      className={`sticky top-0 z-40 transition-all duration-300 ${
+      className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
           ? "bg-[#030712]/90 backdrop-blur-2xl border-b border-amber-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.6)] py-2 sm:py-2.5"
           : "bg-[#030712]/75 backdrop-blur-xl border-b border-blue-900/40 py-3 sm:py-3.5"

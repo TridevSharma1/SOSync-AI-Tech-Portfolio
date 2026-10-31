@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Sparkles, Check, ChevronLeft, ChevronRight, Phone, ArrowRight } from "lucide-react";
 import { useSiteData } from "@/context/SiteDataContext";
@@ -96,19 +96,52 @@ export function PortfolioStorySection({ className = "" }: { className?: string }
   const prevSlide = () => setActiveSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
   const nextSlide = () => setActiveSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
 
+  // Mobile touch gesture tracking
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true);
+    const touch = e.touches[0];
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setIsPaused(false);
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX.current;
+    const deltaY = touch.clientY - touchStartY.current;
+
+    // Trigger swipe when horizontal gesture dominates vertical scroll and exceeds 40px
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 40) {
+      if (deltaX < 0) {
+        // Swiped Left -> Next slide
+        nextSlide();
+      } else {
+        // Swiped Right -> Previous slide
+        prevSlide();
+      }
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
   return (
-    <section className={`pt-2 sm:pt-3 pb-12 sm:pb-16 lg:pb-20 relative overflow-hidden bg-[#030712] ${className}`.trim()}>
+    <section className={`pt-8 sm:pt-12 pb-12 sm:pb-16 lg:pb-20 relative overflow-hidden bg-[#030712] ${className}`.trim()}>
       <div className="dot-grid absolute inset-0 opacity-20 pointer-events-none" aria-hidden="true" />
       <div className="container-site relative">
         <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-16">
           {/* Left: Pure Frameless Edge-to-Edge Screenshot (Zero Corner Radius, No Downside Box) */}
           <div className="relative lg:col-span-6">
             <div
-              className="group relative w-full"
+              className="group relative w-full touch-pan-y select-none"
               onMouseEnter={() => setIsPaused(true)}
               onMouseLeave={() => setIsPaused(false)}
-              onTouchStart={() => setIsPaused(true)}
-              onTouchEnd={() => setIsPaused(false)}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
             >
               {/* Soft Ambient Floating Backlight Aura */}
               <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-tr from-amber-500/15 via-blue-600/15 to-transparent blur-2xl pointer-events-none -z-10" />
@@ -120,9 +153,10 @@ export function PortfolioStorySection({ className = "" }: { className?: string }
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
+                  key={activeSlide}
                   suppressHydrationWarning
                   alt={currentSlide.alt ?? "SOSync AI Tech Digital Solution"}
-                  className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.01]"
+                  className="h-full w-full object-cover object-top transition-all duration-300 animate-in fade-in group-hover:scale-[1.01]"
                   src={currentSlide.src ?? "/about-story-slide-2.jpg"}
                 />
 

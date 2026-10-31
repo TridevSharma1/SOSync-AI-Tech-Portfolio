@@ -75,7 +75,7 @@ export async function connectToDatabase() {
 async function seedDatabaseIfNeeded() {
   try {
     // Import models via relative path
-    const { Story360Model, SiteSettingsModel } =
+    const { Story360Model, SiteSettingsModel, ProjectModel } =
       await import("../models");
 
     // 1. Remove dummy placeholder 360 slides
@@ -91,6 +91,35 @@ async function seedDatabaseIfNeeded() {
         company: defaultSiteData.company,
       });
       console.log(`✅ Seeded default SiteSettings to MongoDB`);
+    }
+
+    // 3. Auto-populate descriptive copy for Sartaj Solar & SP Art Hub ERP if missing/blank
+    if (ProjectModel) {
+      await ProjectModel.updateMany(
+        {
+          title: { $regex: /sartaj solar/i },
+          $or: [{ description: "" }, { description: { $exists: false } }, { description: null }],
+        },
+        {
+          $set: {
+            description:
+              "Sustainable solar thermal water heating solutions for residential and commercial rooftops with automated quote calculators and inquiry workflows.",
+          },
+        }
+      );
+
+      await ProjectModel.updateMany(
+        {
+          title: { $regex: /sp art hub/i },
+          $or: [{ description: "" }, { description: { $exists: false } }, { description: null }],
+        },
+        {
+          $set: {
+            description:
+              "Role-based institute management ERP featuring student enrollment, batch scheduling, fee tracking, teacher portals, and administrative dashboards.",
+          },
+        }
+      );
     }
   } catch (error) {
     console.error("Database seed check error:", error);
