@@ -154,7 +154,7 @@ export function RecentProjectsSection() {
 
                         {/* Description Box with fixed height and auto-hiding side scrollbar */}
                         <div className="mt-2.5 h-14 overflow-y-auto pr-1 text-xs sm:text-sm text-blue-200/70 leading-relaxed custom-scrollbar">
-                          {item.description || ""}
+                          {item.description || `${item.category} digital solution engineered with modern architecture, responsive design, and intuitive user workflows.`}
                         </div>
 
                         {/* Tags */}

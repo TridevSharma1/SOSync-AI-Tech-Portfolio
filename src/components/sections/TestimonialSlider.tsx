@@ -27,7 +27,7 @@ export function TestimonialSlider() {
   if (!current) return null;
 
   return (
-    <section id="testimonials" className="section-pad relative overflow-hidden bg-[#030712]">
+    <section id="testimonials" className="pt-8 sm:pt-12 pb-14 sm:pb-20 relative overflow-hidden bg-[#030712]">
       <div className="dot-grid absolute inset-0 opacity-20 pointer-events-none" aria-hidden="true" />
       <div
         className="pointer-events-none absolute left-1/2 top-1/3 size-[30rem] -translate-x-1/2 rounded-full bg-blue-600/10 blur-[140px]"

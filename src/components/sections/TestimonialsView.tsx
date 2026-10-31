@@ -72,7 +72,7 @@ export function TestimonialsView() {
   return (
     <>
       <Navbar />
-      <main className="flex-1 bg-[#030712] pt-16 sm:pt-20">
+      <main className="flex-1 bg-[#030712]">
         <TestimonialSlider />
 
         <section className="section-pad bg-[#030712] border-t border-blue-900/40">
