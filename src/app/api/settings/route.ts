@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { SiteSettingsModel } from "@/models/SiteSettings";
 import { isAuthenticatedAdmin } from "@/lib/auth";
+import { cdnCacheHeaders, noStoreHeaders } from "@/lib/cdn";
+
+export const dynamic = "force-dynamic";
 
 // Shared in-memory fallback cache so settings & maintenance mode always persist even if MongoDB is not connected
 declare global {
@@ -14,11 +17,12 @@ const defaultSettingsData = {
   maintenanceMessage:
     "SOSync AI Tech is currently undergoing scheduled platform upgrades. We will be back online shortly.",
   social: {
-    linkedin: "https://linkedin.com",
+    linkedin: "https://www.linkedin.com/company/sosyncaitech/posts/?feedView=all",
     twitter: "https://twitter.com",
-    instagram: "https://instagram.com",
+    instagram: "https://www.instagram.com/sosyncaitech_multimediaa?obrf=MWtxODgwdGo2YWpzZg==",
     facebook: "https://facebook.com",
     github: "https://github.com",
+    youtube: "https://www.youtube.com/@SOSyncAITech",
   },
   company: {
     name: "SOSync Ai Tech IT Solution",
@@ -26,7 +30,7 @@ const defaultSettingsData = {
     tagline:
       "Transforming businesses through modern AI solutions, software development & digital innovation.",
     email: "support@sosyncaitech.in",
-    phones: ["+91 91724 03714", "+91 80103 40822"],
+    phones: ["+91 91724 03714", "+91 70043 30655"],
     addressLines: [
       "B1, D-Wing, Shiv Complex, Behind Janta Sahakari Bank,",
       "Sinhgad Road, Vadgaon Khurd, Pune 411041, Maharashtra, India",
@@ -39,7 +43,7 @@ if (!globalThis.__siteSettingsFallback) {
   globalThis.__siteSettingsFallback = { ...defaultSettingsData };
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
     let settings = await SiteSettingsModel.findOne();
@@ -49,10 +53,55 @@ export async function GET() {
     }
 
     if (settings) {
+      let needsSave = false;
+      // Eradicate old phone from existing database records
+      if (settings.company?.phones && Array.isArray(settings.company.phones)) {
+        const updatedPhones = settings.company.phones.map((p: string) =>
+          p.includes("80103") ? "+91 70043 30655" : p
+        );
+        if (JSON.stringify(updatedPhones) !== JSON.stringify(settings.company.phones)) {
+          settings.company.phones = updatedPhones;
+          needsSave = true;
+        }
+      }
+      // Migrate missing/placeholder social links
+      if (settings.social) {
+        if (!settings.social.youtube || settings.social.youtube.includes("@sosync") || settings.social.youtube === "") {
+          settings.social.youtube = "https://www.youtube.com/@SOSyncAITech";
+          needsSave = true;
+        }
+        if (
+          settings.social.linkedin === "https://linkedin.com" ||
+          (settings.social.linkedin?.includes("company/sosync") && !settings.social.linkedin.includes("sosyncaitech"))
+        ) {
+          settings.social.linkedin = "https://www.linkedin.com/company/sosyncaitech/posts/?feedView=all";
+          needsSave = true;
+        }
+        if (
+          settings.social.instagram === "https://instagram.com" ||
+          settings.social.instagram?.includes("sosync.in")
+        ) {
+          settings.social.instagram = "https://www.instagram.com/sosyncaitech_multimediaa?obrf=MWtxODgwdGo2YWpzZg==";
+          needsSave = true;
+        }
+      }
+      if (needsSave) {
+        try {
+          await settings.save();
+        } catch (saveErr) {
+          console.warn("Could not auto-save sanitized settings:", saveErr);
+        }
+      }
+
       globalThis.__siteSettingsFallback = settings.toObject ? settings.toObject() : settings;
     }
 
-    return NextResponse.json({ success: true, settings });
+    const isAdmin = await isAuthenticatedAdmin(req);
+    const headers = isAdmin
+      ? noStoreHeaders()
+      : cdnCacheHeaders({ sMaxAge: 60, staleWhileRevalidate: 300 });
+
+    return NextResponse.json({ success: true, settings }, { headers });
   } catch (error) {
     console.warn("GET /api/settings - using in-memory fallback:", error);
     return NextResponse.json({

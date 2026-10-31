@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { isAuthenticatedAdmin } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     const isAdmin = await isAuthenticatedAdmin(req);

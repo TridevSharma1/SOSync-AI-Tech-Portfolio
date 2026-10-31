@@ -59,6 +59,7 @@ export interface SiteSettingsState {
     instagram: string;
     facebook: string;
     github: string;
+    youtube?: string;
   };
   company: {
     name: string;
@@ -87,6 +88,7 @@ interface SiteDataContextValue {
   // Project CRUD
   createProject: (project: Omit<ProjectItem, "_id" | "id">) => Promise<boolean>;
   updateProject: (id: string, patch: Partial<ProjectItem>) => Promise<boolean>;
+  reorderProjects: (orders: Array<{ id: string; order: number }>) => Promise<boolean>;
   deleteProject: (id: string) => Promise<boolean>;
   // Testimonials
   approveTestimonial: (id: string, status: "approved" | "pending" | "rejected") => Promise<boolean>;
@@ -490,6 +492,48 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const reorderProjects = async (orders: Array<{ id: string; order: number }>): Promise<boolean> => {
+    try {
+      const orderMap = new Map<string, number>();
+      orders.forEach((o) => orderMap.set(o.id, o.order));
+
+      setProjects((prev) => {
+        const updated = prev.map((p) => {
+          const id = p._id || p.id || "";
+          if (orderMap.has(id)) {
+            return { ...p, order: orderMap.get(id) };
+          }
+          return p;
+        });
+        return updated.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      });
+
+      setData((prev) => {
+        const updatedPortfolio = prev.portfolio.map((p) => {
+          const id = p.id || "";
+          if (orderMap.has(id)) {
+            return { ...p, order: orderMap.get(id) };
+          }
+          return p;
+        });
+        return {
+          ...prev,
+          portfolio: updatedPortfolio.sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)),
+        };
+      });
+
+      const res = await fetch("/api/projects/reorder", {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ orders }),
+      });
+
+      return res.ok;
+    } catch {
+      return false;
+    }
+  };
+
   const deleteProject = async (id: string): Promise<boolean> => {
     try {
       const keysToAdd: string[] = [id];
@@ -823,6 +867,7 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         logout,
         createProject,
         updateProject,
+        reorderProjects,
         deleteProject,
         approveTestimonial,
         updateTestimonial,

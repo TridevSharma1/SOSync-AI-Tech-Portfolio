@@ -26,7 +26,7 @@ export function Footer() {
 
   const primaryPhone = company.phones?.[0] || "+91 91724 03714";
   const secondaryPhone = company.phones?.[1] || "+91 70043 30655";
-  const supportEmail = company.email || "support@sosync.in";
+  const supportEmail = company.email || "support@sosyncaitech.in";
 
   const socialLinks = [
     {
@@ -39,14 +39,14 @@ export function Footer() {
     {
       name: "linkedin",
       iconSrc: "/icons/linkedin-96.png",
-      href: data.social?.linkedin || "https://www.linkedin.com/company/sosync",
+      href: data.social?.linkedin || "https://www.linkedin.com/company/sosyncaitech/posts/?feedView=all",
       label: "LinkedIn",
       hoverClass: "hover:border-[#0A66C2] hover:shadow-[0_0_14px_rgba(10,102,194,0.4)]",
     },
     {
       name: "instagram",
       iconSrc: "/icons/instagram-96.png",
-      href: data.social?.instagram || "https://www.instagram.com/sosync.in",
+      href: data.social?.instagram || "https://www.instagram.com/sosyncaitech_multimediaa?obrf=MWtxODgwdGo2YWpzZg==",
       label: "Instagram",
       hoverClass: "hover:border-[#E4405F] hover:shadow-[0_0_14px_rgba(228,64,95,0.4)]",
     },
@@ -60,7 +60,7 @@ export function Footer() {
     {
       name: "youtube",
       iconSrc: "/icons/youtube-96.png",
-      href: "https://www.youtube.com/@sosync",
+      href: (data.social as any)?.youtube || "https://www.youtube.com/@SOSyncAITech",
       label: "YouTube",
       hoverClass: "hover:border-[#FF0000] hover:shadow-[0_0_14px_rgba(255,0,0,0.4)]",
     },
@@ -76,7 +76,7 @@ export function Footer() {
   return (
     <footer className="border-t border-blue-900/50 bg-[#030712] text-blue-200/80 relative overflow-hidden">
       {/* Top Brand Accent Line */}
-      <div className="h-[2px] w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-400" />
+      <div className="h-[2px] w-full bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500" />
 
       {/* Atmospheric ambient blue & orange glows */}
       <div className="pointer-events-none absolute -bottom-24 -left-24 size-80 rounded-full bg-blue-600/10 blur-[130px]" />
@@ -146,11 +146,6 @@ export function Footer() {
                   Our Story
                 </Link>
               </li>
-              <li>
-                <Link className="hover:text-amber-400 transition-colors font-medium" href="/contact">
-                  Contact Us
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -217,7 +212,7 @@ export function Footer() {
                   />
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 px-4 py-2 text-xs sm:text-sm font-extrabold text-black shadow-lg shadow-amber-500/20 transition-all duration-200 hover:scale-[1.02] cursor-pointer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500 px-4 py-2 text-xs sm:text-sm font-extrabold text-black shadow-lg shadow-orange-500/30 transition-all duration-200 hover:scale-[1.02] cursor-pointer"
                   >
                     {subscribed ? "Subscribed! ✓" : "Subscribe"}
                     {!subscribed && <Icon name="arrow-right" className="size-3.5" />}
@@ -257,7 +252,7 @@ export function Footer() {
 
                 {/* Bottom "Get Directions" Banner Button (SOSync Brand Gradient) */}
                 <div className="absolute bottom-2.5 inset-x-2.5 z-10">
-                  <div className="flex items-center justify-between w-full px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-black font-extrabold text-xs shadow-lg shadow-amber-500/20 group-hover:brightness-110 transition-all">
+                  <div className="flex items-center justify-between w-full px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500 text-black font-extrabold text-xs shadow-lg shadow-orange-500/30 group-hover:brightness-110 transition-all">
                     <div className="flex items-center gap-1.5">
                       <MapPin size={13} className="stroke-[2.5]" />
                       <span>Get Directions</span>
@@ -277,7 +272,7 @@ export function Footer() {
           
 
           <div className="flex items-center gap-4">
-            <Link href="/contact" className="hover:text-amber-400 transition-colors">
+            <Link href="#" className="hover:text-amber-400 transition-colors">
               Privacy Policy
             </Link>
             <span className="text-blue-900">|</span>

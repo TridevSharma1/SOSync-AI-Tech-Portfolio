@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ProjectModel } from "@/models/Project";
 import { isAuthenticatedAdmin } from "@/lib/auth";
+import { cdnCacheHeaders, noStoreHeaders } from "@/lib/cdn";
+
+export const dynamic = "force-dynamic";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -12,21 +15,33 @@ if (!globalThis.__projectsFallback) {
   globalThis.__projectsFallback = [];
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const isAdmin = await isAuthenticatedAdmin(req);
     await connectToDatabase();
     const projects = await ProjectModel.find({}).sort({ order: 1, createdAt: -1 });
     if (projects && projects.length > 0) {
       globalThis.__projectsFallback = projects.map((p) => (p.toObject ? p.toObject() : p));
     }
-    return NextResponse.json({ success: true, projects: globalThis.__projectsFallback || [] });
+
+    const headers = isAdmin
+      ? noStoreHeaders()
+      : cdnCacheHeaders({ sMaxAge: 120, staleWhileRevalidate: 600 });
+
+    return NextResponse.json(
+      { success: true, projects: globalThis.__projectsFallback || [] },
+      { headers }
+    );
   } catch (error) {
     console.warn("GET /api/projects - using in-memory fallback:", error);
-    return NextResponse.json({
-      success: true,
-      projects: globalThis.__projectsFallback || [],
-      isFallback: true,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        projects: globalThis.__projectsFallback || [],
+        isFallback: true,
+      },
+      { headers: cdnCacheHeaders({ sMaxAge: 30, staleWhileRevalidate: 60 }) }
+    );
   }
 }
 
@@ -43,7 +58,7 @@ export async function POST(req: NextRequest) {
     if (!title || !image || !category) {
       return NextResponse.json(
         { error: "Title, image, and category are required" },
-        { status: 400 }
+        { status: 400, headers: noStoreHeaders() }
       );
     }
 
@@ -84,9 +99,15 @@ export async function POST(req: NextRequest) {
     // Add to in-memory fallback store
     globalThis.__projectsFallback.unshift(newProject);
 
-    return NextResponse.json({ success: true, project: newProject }, { status: 201 });
+    return NextResponse.json(
+      { success: true, project: newProject },
+      { status: 201, headers: noStoreHeaders() }
+    );
   } catch (error) {
     console.error("POST /api/projects error:", error);
-    return NextResponse.json({ error: "Failed to create project" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create project" },
+      { status: 500, headers: noStoreHeaders() }
+    );
   }
 }

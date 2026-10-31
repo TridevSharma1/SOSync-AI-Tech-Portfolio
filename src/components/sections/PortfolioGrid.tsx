@@ -21,8 +21,8 @@ function Filters({ active, onChange }: { active: string; onChange: (c: string) =
           onClick={() => onChange(cat)}
           className={`shrink-0 rounded-full px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold transition-all ${
             active === cat
-              ? "bg-gradient-to-r from-brand to-cyan text-white shadow-glow"
-              : "border border-border bg-card text-muted-foreground hover:border-brand/40 hover:text-brand"
+              ? "bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500 text-black font-extrabold shadow-lg shadow-orange-500/30"
+              : "border border-border bg-card text-muted-foreground hover:border-orange-500/50 hover:text-orange-400"
           }`}
         >
           {cat}
@@ -35,36 +35,44 @@ function Filters({ active, onChange }: { active: string; onChange: (c: string) =
 function ProjectCard({ item, delay, onView }: { item: PortfolioItem; delay: number; onView: () => void }) {
   return (
     <Reveal delay={delay} className="h-full">
-      <article className="card-soft group flex h-full flex-col overflow-hidden">
-        <div className="relative overflow-hidden">
-          <img
-            src={item.image}
-            alt={item.title}
-            width={1280}
-            height={800}
-            loading="lazy"
-            className="aspect-[16/10] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-          <span className="absolute left-3 top-3 sm:left-4 sm:top-4 rounded-full bg-navy/85 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold text-white backdrop-blur">
-            {item.category}
-          </span>
-        </div>
-        <div className="flex flex-1 flex-col p-5 sm:p-6">
-          <h3 className="font-display text-base sm:text-lg font-bold text-foreground">{item.title}</h3>
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {item.technologies.map((t) => (
-              <span
-                key={t}
-                className="rounded-full bg-secondary px-2.5 py-0.5 text-[0.7rem] font-semibold text-brand-deep"
-              >
-                {t}
-              </span>
-            ))}
+      <article className="card-soft group flex h-full flex-col justify-between overflow-hidden">
+        <div>
+          <div className="relative overflow-hidden">
+            <img
+              src={item.image}
+              alt={item.title}
+              width={1280}
+              height={800}
+              loading="lazy"
+              className="aspect-[21/10] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <span className="absolute left-3 top-3 sm:left-4 sm:top-4 rounded-full bg-navy/85 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold text-white backdrop-blur">
+              {item.category}
+            </span>
           </div>
-          <p className="mt-3 flex-1 text-xs sm:text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+          <div className="p-5 sm:p-6">
+            <h3 className="font-display text-base sm:text-lg font-bold text-foreground line-clamp-1" title={item.title}>
+              {item.title}
+            </h3>
+            <div className="mt-2.5 h-6 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              {item.technologies.map((t) => (
+                <span
+                  key={t}
+                  className="shrink-0 rounded-full bg-secondary px-2.5 py-0.5 text-[0.7rem] font-semibold text-brand-deep"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+            <div className="mt-3 h-14 overflow-y-auto pr-1 text-xs sm:text-sm leading-relaxed text-muted-foreground custom-scrollbar">
+              {item.description || ""}
+            </div>
+          </div>
+        </div>
+        <div className="px-5 pb-5 sm:px-6 sm:pb-6">
           <button
             onClick={onView}
-            className="mt-5 inline-flex items-center gap-1.5 self-start text-xs sm:text-sm font-semibold text-brand transition-all hover:gap-2.5"
+            className="inline-flex items-center gap-1.5 self-start text-xs sm:text-sm font-semibold text-brand transition-all hover:gap-2.5 cursor-pointer"
           >
             View Details
             <Icon name="arrow-right" className="size-4" />
@@ -86,13 +94,11 @@ export function PortfolioGrid() {
     const f = filter.toLowerCase();
     return data.portfolio.filter((p) => {
       const cat = (p.category || "").toLowerCase();
-      if (f === "web") return cat.includes("web") || cat.includes("learning");
-      if (f === "mobile") return cat.includes("mobile") || cat.includes("app");
-      if (f === "ai") return cat.includes("ai");
-      if (f === "erp") return cat.includes("erp");
-      if (f === "crm") return cat.includes("crm");
-      if (f === "e-commerce") return cat.includes("commerce");
-      return cat === f;
+      if (f === "dynamic portfolio") return cat.includes("dynamic");
+      if (f === "static portfolio") return cat.includes("static");
+      if (f === "ecommerce") return cat.includes("ecom") || cat.includes("commerce");
+      if (f === "custom software") return cat.includes("custom") || cat.includes("software") || cat.includes("erp") || cat.includes("crm");
+      return cat === f || cat.includes(f);
     });
   }, [data.portfolio, filter]);
 
@@ -137,7 +143,7 @@ export function PortfolioGrid() {
                 alt={selected.title}
                 width={1280}
                 height={800}
-                className="aspect-[16/9] w-full object-cover"
+                className="aspect-[21/10] max-h-[70vh] w-full object-contain bg-[#070F1E]"
               />
               <div className="p-5 sm:p-7">
                 <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-brand-deep">
@@ -155,10 +161,10 @@ export function PortfolioGrid() {
                     </span>
                   ))}
                 </div>
-                <Link href="/contact" className="btn btn-gradient btn-sm mt-6 w-full sm:w-auto">
-                  Start a similar project
-                  <Icon name="arrow-right" className="size-4" />
-                </Link>
+                <a href="tel:+919172403714" className="btn btn-gradient btn-sm mt-6 w-full sm:w-auto">
+                  <Icon name="phone" className="size-4" />
+                  Call to Start a Similar Project
+                </a>
               </div>
             </div>
           </div>

@@ -3,6 +3,9 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { Story360Model } from "@/models/Story360";
 import { ProjectModel } from "@/models/Project";
 import { isAuthenticatedAdmin } from "@/lib/auth";
+import { cdnCacheHeaders, noStoreHeaders } from "@/lib/cdn";
+
+export const dynamic = "force-dynamic";
 
 // Shared in-memory fallback cache so 360 slides always persist even if MongoDB is not connected
 declare global {
@@ -109,11 +112,19 @@ export async function GET(req: NextRequest) {
       ...projectSlides,
     ];
 
-    return NextResponse.json({
-      success: true,
-      slides: allSlides,
-      adminSlides: adminSlides.length > 0 ? adminSlides : customSlides,
-    });
+    const isAdmin = await isAuthenticatedAdmin(req);
+    const headers = isAdmin
+      ? noStoreHeaders()
+      : cdnCacheHeaders({ sMaxAge: 120, staleWhileRevalidate: 600 });
+
+    return NextResponse.json(
+      {
+        success: true,
+        slides: allSlides,
+        adminSlides: adminSlides.length > 0 ? adminSlides : customSlides,
+      },
+      { headers }
+    );
   } catch (error) {
     console.error("GET /api/story-360 fatal error:", error);
     return NextResponse.json({

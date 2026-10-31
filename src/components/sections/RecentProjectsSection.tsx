@@ -9,7 +9,6 @@ const BASE_CATEGORIES = [
   "Static Portfolio",
   "Ecommerce",
   "Custom Software",
-  "Mobile Application",
 ] as const;
 
 const PAGE_SIZE = 50;
@@ -23,21 +22,8 @@ export function RecentProjectsSection() {
     return projects || [];
   }, [projects]);
 
-  // Dynamically include any additional custom categories from real projects
-  const categories = useMemo(() => {
-    const customCats = new Set<string>();
-    projectList.forEach((p) => {
-      const c = (p.category || "").trim();
-      if (!c) return;
-      const matchesBase = BASE_CATEGORIES.some(
-        (b) => b !== "All" && (b.toLowerCase() === c.toLowerCase() || c.toLowerCase().includes(b.toLowerCase()))
-      );
-      if (!matchesBase) {
-        customCats.add(c);
-      }
-    });
-    return [...BASE_CATEGORIES, ...Array.from(customCats)];
-  }, [projectList]);
+  // Strict categories: All, Dynamic Portfolio, Static Portfolio, Ecommerce, Custom Software
+  const categories = BASE_CATEGORIES;
 
   const filtered = useMemo(() => {
     return projectList.filter((p) => {
@@ -56,9 +42,6 @@ export function RecentProjectsSection() {
       }
       if (act === "custom software") {
         return cat.includes("custom") || cat.includes("software") || cat.includes("erp") || cat.includes("crm");
-      }
-      if (act === "mobile application") {
-        return cat.includes("mobile") || cat.includes("app") || cat.includes("application");
       }
 
       return cat === act || cat.includes(act);
@@ -104,8 +87,8 @@ export function RecentProjectsSection() {
             onClick={() => handleCategoryChange(cat)}
             className={`rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
               activeCategory === cat
-                ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-black shadow-lg shadow-amber-500/25 border border-amber-300/60"
-                : "border border-blue-900/60 bg-[#070F1E] text-blue-200/90 hover:border-amber-500/40 hover:text-white"
+                ? "bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500 text-black shadow-lg shadow-orange-500/35 border border-orange-300/70"
+                : "border border-blue-900/60 bg-[#070F1E] text-blue-200/90 hover:border-orange-500/50 hover:text-white"
             }`}
           >
             {cat}
@@ -119,74 +102,75 @@ export function RecentProjectsSection() {
           <>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {visibleProjects.map((item, idx) => (
-                <div key={item._id || item.id || item.title || idx}>
+                <div key={item._id || item.id || item.title || idx} className="h-full">
                   <a
                     href={item.href || "#"}
                     target="_blank"
                     rel="noreferrer"
-                    className="group block overflow-hidden rounded-3xl border border-blue-900/60 bg-[#0B152B]/90 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/60"
+                    className="group flex flex-col justify-between h-full overflow-hidden rounded-3xl border border-blue-900/60 bg-[#0B152B]/90 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/60"
                   >
-                    {/* Image + Top-Left Category Badge */}
-                    <div className="relative aspect-[4/3] overflow-hidden bg-[#070F1E]">
-                      <img
-                        alt={item.title}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        src={item.image}
-                      />
-                      <div className="absolute left-4 top-4 flex flex-wrap gap-2 pointer-events-none">
-                        <span className="rounded-full bg-[#070F1E]/95 px-3 py-1 text-xs font-black uppercase tracking-wider text-amber-400 border border-amber-500/30 backdrop-blur-md shadow-xs">
-                          {item.category}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Card Content */}
-                    <div className="p-6">
-                      <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-xl font-bold text-white transition-colors group-hover:text-amber-400 font-display">
-                          {item.title}
-                        </h3>
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-amber-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="lucide lucide-external-link h-4 w-4"
-                            aria-hidden="true"
-                          >
-                            <path d="M15 3h6v6" />
-                            <path d="M10 14 21 3" />
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                          </svg>
+                    <div>
+                      {/* Image + Top-Left Category Badge */}
+                      <div className="relative aspect-[21/10] overflow-hidden bg-[#070F1E]">
+                        <img
+                          alt={item.title}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          src={item.image}
+                        />
+                        <div className="absolute left-4 top-4 flex flex-wrap gap-2 pointer-events-none">
+                          <span className="rounded-full bg-[#070F1E]/95 px-3 py-1 text-xs font-black uppercase tracking-wider text-amber-400 border border-amber-500/30 backdrop-blur-md shadow-xs">
+                            {item.category}
+                          </span>
                         </div>
                       </div>
 
-                      {item.description && (
-                        <p className="mt-2.5 text-xs sm:text-sm text-blue-200/70 line-clamp-2 leading-relaxed">
-                          {item.description}
-                        </p>
-                      )}
-
-                      {/* Tags */}
-                      {item.tags && item.tags.length > 0 && (
-                        <div className="mt-4 flex flex-wrap gap-1.5">
-                          {item.tags.map((t) => (
-                            <span
-                              key={t}
-                              className="rounded-full bg-[#070F1E] border border-blue-900/50 px-2.5 py-0.5 text-[10px] font-semibold text-blue-200/90"
+                      {/* Card Content */}
+                      <div className="p-6">
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className="text-xl font-bold text-white transition-colors group-hover:text-amber-400 font-display line-clamp-1" title={item.title}>
+                            {item.title}
+                          </h3>
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-amber-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="lucide lucide-external-link h-4 w-4"
+                              aria-hidden="true"
                             >
-                              {t}
-                            </span>
-                          ))}
+                              <path d="M15 3h6v6" />
+                              <path d="M10 14 21 3" />
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            </svg>
+                          </div>
                         </div>
-                      )}
+
+                        {/* Description Box with fixed height and auto-hiding side scrollbar */}
+                        <div className="mt-2.5 h-14 overflow-y-auto pr-1 text-xs sm:text-sm text-blue-200/70 leading-relaxed custom-scrollbar">
+                          {item.description || ""}
+                        </div>
+
+                        {/* Tags */}
+                        <div className="mt-4 h-6 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                          {item.tags && item.tags.length > 0
+                            ? item.tags.map((t) => (
+                                <span
+                                  key={t}
+                                  className="shrink-0 rounded-full bg-[#070F1E] border border-blue-900/50 px-2.5 py-0.5 text-[10px] font-semibold text-blue-200/90"
+                                >
+                                  {t}
+                                </span>
+                              ))
+                            : null}
+                        </div>
+                      </div>
                     </div>
                   </a>
                 </div>
@@ -199,7 +183,7 @@ export function RecentProjectsSection() {
                 <button
                   type="button"
                   onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-                  className="rounded-full border border-amber-500/50 bg-amber-500/10 px-8 py-3 text-sm font-bold text-amber-400 shadow-sm transition-all hover:bg-amber-500 hover:text-black cursor-pointer"
+                  className="rounded-full border border-orange-500/60 bg-orange-500/10 px-8 py-3 text-sm font-bold text-orange-400 shadow-sm transition-all hover:bg-[#FF6B00] hover:text-black hover:shadow-orange-500/30 cursor-pointer"
                 >
                   Load More Projects ({filtered.length - visibleCount} remaining)
                 </button>

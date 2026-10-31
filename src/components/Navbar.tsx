@@ -105,13 +105,13 @@ export function Navbar({ lightTop: _lightTop = false }: NavbarProps) {
                 href={link.to}
                 className={`relative px-4 py-1.5 rounded-full text-xs lg:text-sm font-extrabold tracking-wide transition-all duration-300 cursor-pointer select-none inline-flex items-center gap-1.5 ${
                   isActive
-                    ? "bg-amber-500 text-black shadow-lg shadow-amber-500/30 scale-105 animate-nav-active-pill z-10 font-black"
+                    ? "bg-gradient-to-r from-orange-600 to-orange-500 text-black shadow-lg shadow-orange-500/35 scale-105 animate-nav-active-pill z-10 font-black"
                     : "text-blue-100/80 hover:text-white hover:bg-white/10 hover:shadow-[0_0_12px_rgba(245,158,11,0.15)] hover:scale-105"
                 }`}
               >
                 <span className="relative z-10">{link.label}</span>
                 {isActive && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 rounded-full bg-amber-300 blur-[2px] -z-10" />
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 rounded-full bg-orange-400 blur-[2px] -z-10" />
                 )}
               </Link>
             );
@@ -122,7 +122,7 @@ export function Navbar({ lightTop: _lightTop = false }: NavbarProps) {
         <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
           <a
             href={`tel:${phoneClean}`}
-            className="relative overflow-hidden group/call inline-flex items-center gap-2 rounded-full bg-amber-500 hover:bg-amber-400 text-black px-3.5 sm:px-5 h-9 sm:h-10 font-black shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:scale-[1.04] active:scale-95 transition-all text-xs sm:text-sm cursor-pointer border border-amber-300/60 animate-border-glow-call"
+            className="relative overflow-hidden group/call inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500 hover:brightness-110 text-black px-3.5 sm:px-5 h-9 sm:h-10 font-black shadow-lg shadow-orange-500/35 hover:shadow-orange-500/50 hover:scale-[1.04] active:scale-95 transition-all text-xs sm:text-sm cursor-pointer border border-orange-300/70 animate-border-glow-call"
             title={`Call: ${phoneDisplay}`}
             aria-label={`Call: ${phoneDisplay}`}
           >
@@ -174,7 +174,7 @@ export function Navbar({ lightTop: _lightTop = false }: NavbarProps) {
                   style={{ animationDelay: `${idx * 40}ms` }}
                   className={`flex items-center justify-between rounded-2xl px-4 py-3 font-extrabold text-xs sm:text-sm transition-all border duration-300 ${
                     isActive
-                      ? "bg-amber-500 text-black border-amber-300 shadow-md shadow-amber-500/25 animate-border-glow-orange font-black"
+                      ? "bg-gradient-to-r from-orange-600 to-orange-500 text-black border-orange-300 shadow-md shadow-orange-500/35 animate-border-glow-orange font-black"
                       : "bg-[#0B152B]/60 text-white border-blue-900/60 hover:bg-[#0B152B] hover:border-amber-500/40 hover:text-amber-400"
                   }`}
                 >
@@ -188,7 +188,7 @@ export function Navbar({ lightTop: _lightTop = false }: NavbarProps) {
           <div className="pt-2 border-t border-blue-900/40">
             <a
               href={`tel:${phoneClean}`}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black py-3 font-extrabold text-xs uppercase tracking-wider shadow-md"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500 hover:brightness-110 text-black py-3 font-extrabold text-xs uppercase tracking-wider shadow-md shadow-orange-500/30"
             >
               <Phone size={14} />
               <span>Call Direct ({phoneDisplay})</span>

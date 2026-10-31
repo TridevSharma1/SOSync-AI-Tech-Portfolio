@@ -18,6 +18,7 @@ export interface SocialLinks {
   instagram: string;
   facebook: string;
   github: string;
+  youtube?: string;
 }
 
 export interface HeroContent {

@@ -118,7 +118,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-400 py-3 text-xs sm:text-sm font-extrabold text-black uppercase tracking-wider shadow-lg shadow-amber-500/25 transition-all hover:opacity-95 hover:shadow-amber-500/40 disabled:opacity-50 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500 py-3 text-xs sm:text-sm font-extrabold text-black uppercase tracking-wider shadow-lg shadow-orange-500/35 transition-all hover:opacity-95 hover:shadow-orange-500/50 disabled:opacity-50 cursor-pointer"
           >
             <span>{loading ? "Authenticating..." : "Sign in to Dashboard"}</span>
             <ArrowRight size={15} />

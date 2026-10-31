@@ -303,18 +303,19 @@
 
  .btn-gradient,
  .btn-primary-orange {
-   background: linear-gradient(to right, #f59e0b, #ff6b00, #f59e0b);
+   background: linear-gradient(135deg, #FF5500 0%, #FF6B00 50%, #FF7700 100%);
    color: #000000 !important;
    font-weight: 800;
-   border: 1px solid rgba(254, 240, 138, 0.6);
-   box-shadow: 0 0 16px rgba(255, 107, 0, 0.35);
+   border: 1px solid rgba(255, 145, 77, 0.75);
+   box-shadow: 0 4px 20px rgba(255, 85, 0, 0.42), 0 0 12px rgba(255, 107, 0, 0.28);
  }
 
  .btn-gradient:hover,
  .btn-primary-orange:hover {
+   background: linear-gradient(135deg, #E04D00 0%, #FF5500 50%, #FF6B00 100%);
    transform: translateY(-2px) scale(1.02);
-   box-shadow: 0 0 24px rgba(255, 107, 0, 0.6);
-   opacity: 0.95;
+   box-shadow: 0 6px 28px rgba(255, 85, 0, 0.68), 0 0 18px rgba(255, 107, 0, 0.45);
+   opacity: 0.98;
  }
 
  .btn-secondary-gray,
@@ -542,6 +543,40 @@
    display: none;
  }
 
+  /* Card Description Auto-Hiding Side Scrollbar */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.2s ease;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    transition: background 0.2s ease;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 9999px;
+    transition: background 0.2s ease;
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb,
+  .group:hover .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(245, 158, 11, 0.45);
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb:hover {
+    background: rgba(245, 158, 11, 0.75);
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-track,
+  .group:hover .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .custom-scrollbar:hover,
+  .group:hover .custom-scrollbar {
+    scrollbar-color: rgba(245, 158, 11, 0.45) rgba(255, 255, 255, 0.04);
+  }
+
  .no-scrollbar {
    -ms-overflow-style: none;
    scrollbar-width: none;
@@ -562,12 +597,12 @@
 
 @keyframes border-glow-orange {
   0%, 100% {
-    box-shadow: 0 0 0 1.5px rgba(245, 158, 11, 0.6), 0 0 12px rgba(245, 158, 11, 0.4);
-    border-color: rgba(245, 158, 11, 0.9);
+    box-shadow: 0 0 0 1.5px rgba(255, 107, 0, 0.65), 0 0 14px rgba(255, 85, 0, 0.45);
+    border-color: rgba(255, 107, 0, 0.9);
   }
   50% {
-    box-shadow: 0 0 0 2px rgba(254, 240, 138, 0.95), 0 0 24px rgba(245, 158, 11, 0.8), 0 0 32px rgba(251, 191, 36, 0.5);
-    border-color: rgba(254, 240, 138, 1);
+    box-shadow: 0 0 0 2px rgba(255, 145, 77, 0.95), 0 0 26px rgba(255, 85, 0, 0.85), 0 0 34px rgba(255, 107, 0, 0.55);
+    border-color: rgba(255, 145, 77, 1);
   }
 }
 
@@ -582,10 +617,12 @@
 
 @keyframes border-glow-call {
   0%, 100% {
-    box-shadow: 0 0 0 1.5px rgba(245, 158, 11, 0.6), 0 0 12px rgba(245, 158, 11, 0.35);
+    box-shadow: 0 0 0 1.5px rgba(255, 107, 0, 0.65), 0 0 14px rgba(255, 85, 0, 0.4);
+    border-color: rgba(255, 107, 0, 0.9);
   }
   50% {
-    box-shadow: 0 0 0 2px rgba(254, 240, 138, 0.95), 0 0 22px rgba(245, 158, 11, 0.7);
+    box-shadow: 0 0 0 2px rgba(255, 145, 77, 0.95), 0 0 24px rgba(255, 85, 0, 0.75);
+    border-color: rgba(255, 145, 77, 1);
   }
 }
 
@@ -659,11 +696,11 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(245, 158, 11, 0.2) 20%,
-    rgba(245, 158, 11, 0.9) 48%,
-    rgba(254, 240, 138, 1) 50%,
-    rgba(245, 158, 11, 0.9) 52%,
-    rgba(245, 158, 11, 0.2) 80%,
+    rgba(255, 107, 0, 0.25) 20%,
+    rgba(255, 107, 0, 0.95) 48%,
+    rgba(255, 179, 128, 1) 50%,
+    rgba(255, 107, 0, 0.95) 52%,
+    rgba(255, 107, 0, 0.25) 80%,
     transparent 100%
   );
   background-size: 200% 100%;
@@ -672,10 +709,10 @@
 
 @keyframes nav-pill-glow {
   0%, 100% {
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(255, 107, 0, 0.45), inset 0 0 6px rgba(255, 255, 255, 0.2);
   }
   50% {
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.75), inset 0 0 10px rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 20px rgba(255, 107, 0, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.4);
   }
 }
 

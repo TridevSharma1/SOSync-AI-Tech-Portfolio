@@ -17,7 +17,6 @@ type AdminTab =
   | "projects"
   | "story360"
   | "testimonials"
-  | "enquiries"
   | "footer"
   | "settings";
 
@@ -33,6 +32,7 @@ export default function AdminDashboard() {
     data,
     createProject,
     updateProject,
+    reorderProjects,
     deleteProject,
     approveTestimonial,
     updateTestimonial,
@@ -73,6 +73,7 @@ export default function AdminDashboard() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Modals state
+  const [seqModalOpen, setSeqModalOpen] = useState(false);
   const [projectModal, setProjectModal] = useState<{
     open: boolean;
     mode: "add" | "edit";
@@ -85,16 +86,10 @@ export default function AdminDashboard() {
     item?: BackendTestimonial;
   }>({ open: false, mode: "add" });
 
-  const [slideModal, setSlideModal] = useState<{
-    open: boolean;
-    mode: "add" | "edit";
-    item?: Story360Item;
-  }>({ open: false, mode: "add" });
 
   // View Details Modals state
   const [viewProject, setViewProject] = useState<ProjectItem | null>(null);
   const [viewTestimonial, setViewTestimonial] = useState<BackendTestimonial | null>(null);
-  const [viewSlide, setViewSlide] = useState<Story360Item | null>(null);
 
   useEffect(() => {
     if (authReady && !isAdmin) {
@@ -118,24 +113,17 @@ export default function AdminDashboard() {
     );
   }
 
-  const unreadEnquiries = data.enquiries.filter((e) => !e.read).length;
   const pendingTestimonials = allAdminTestimonials.filter((t) => t.status === "pending").length;
 
   const NAV_ITEMS: { id: AdminTab; label: string; icon: string; badge?: number }[] = [
     { id: "overview", label: "Overview", icon: "dashboard" },
     { id: "projects", label: "Portfolio Projects", icon: "briefcase" },
-    { id: "story360", label: "360° Digital Solution", icon: "sparkles" },
+    { id: "story360", label: "Porfolio Slide", icon: "sparkles" },
     {
       id: "testimonials",
       label: "Testimonials",
       icon: "quote",
       badge: pendingTestimonials > 0 ? pendingTestimonials : undefined,
-    },
-    {
-      id: "enquiries",
-      label: "Inquiries",
-      icon: "mail",
-      badge: unreadEnquiries > 0 ? unreadEnquiries : undefined,
     },
     { id: "footer", label: "Footer & Company", icon: "pin" },
     { id: "settings", label: "Settings & Maintenance", icon: "settings" },
@@ -167,7 +155,7 @@ export default function AdminDashboard() {
               onClick={() => setTab(n.id)}
               className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-sm font-semibold transition-all ${
                 tab === n.id
-                  ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-black font-extrabold shadow-lg shadow-amber-500/20"
+                  ? "bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500 text-black font-extrabold shadow-lg shadow-orange-500/30"
                   : "text-blue-200/80 hover:bg-white/5 hover:text-white font-semibold"
               }`}
             >
@@ -304,9 +292,7 @@ export default function AdminDashboard() {
               projectsCount={projects.length}
               testimonialsCount={allAdminTestimonials.length}
               pendingTestimonials={pendingTestimonials}
-              slides360Count={admin360Slides.length}
-              enquiriesCount={data.enquiries.length}
-              unreadEnquiries={unreadEnquiries}
+              slides360Count={projects.filter((p) => p.showIn360 !== false && Boolean(p.image)).length}
               maintenanceMode={settings.maintenanceMode}
               onNavigate={setTab}
               onToggleMaintenance={handleQuickToggleMaintenance}
@@ -320,6 +306,14 @@ export default function AdminDashboard() {
               onAddNew={() => setProjectModal({ open: true, mode: "add" })}
               onView={(p) => setViewProject(p)}
               onEdit={(p) => setProjectModal({ open: true, mode: "edit", item: p })}
+              onOpenSequenceEditor={() => setSeqModalOpen(true)}
+              onBatchReorder={async (orders) => {
+                const ok = await reorderProjects(orders);
+                if (ok) showToast("Project sequences updated successfully!");
+              }}
+              onReorder={async (id, newOrder) => {
+                await updateProject(id, { order: newOrder });
+              }}
               onDelete={async (id) => {
                 if (window.confirm("Are you sure you want to delete this project?")) {
                   const ok = await deleteProject(id);
@@ -334,22 +328,26 @@ export default function AdminDashboard() {
           )}
 
           {tab === "story360" && (
-            <Story360Tab
-              slides={admin360Slides}
+            <PorfolioSlideTab
               projects={projects}
               onNavigate={setTab}
-              onAddNew={() => setSlideModal({ open: true, mode: "add" })}
-              onView={(s) => setViewSlide(s)}
-              onToggleActive={async (slide) => {
-                const ok = await update360Slide(slide._id, { active: !slide.active });
-                if (ok) showToast(`Slide marked ${!slide.active ? "Active" : "Inactive"}`);
+              onBatchReorder={async (orders) => {
+                const ok = await reorderProjects(orders);
+                if (ok) showToast("Carousel slide sequence updated!");
               }}
-              onDelete={async (id) => {
-                if (window.confirm("Are you sure you want to delete this 360 showcase image?")) {
-                  const ok = await delete360Slide(id);
-                  if (ok) showToast("Slide deleted");
+              onReorder={async (id, newOrder) => {
+                await updateProject(id, { order: newOrder });
+              }}
+              onToggle360={async (p) => {
+                const nextState = !p.showIn360;
+                const id = p._id || p.id || "";
+                if (id) {
+                  const ok = await updateProject(id, { showIn360: nextState });
+                  if (ok) showToast(nextState ? "Project added to 360° carousel" : "Project removed from 360° carousel");
                 }
               }}
+              onView={(p) => setViewProject(p)}
+              onEdit={(p) => setProjectModal({ open: true, mode: "edit", item: p })}
             />
           )}
 
@@ -371,22 +369,6 @@ export default function AdminDashboard() {
                 if (confirm("Delete this testimonial?")) {
                   const ok = await deleteTestimonial(id);
                   if (ok) showToast("Testimonial deleted");
-                }
-              }}
-            />
-          )}
-
-          {tab === "enquiries" && (
-            <EnquiriesTab
-              enquiries={data.enquiries}
-              onToggleRead={async (id, read) => {
-                const ok = await markEnquiryRead(id, read);
-                if (ok) showToast(read ? "Marked as Read" : "Marked as Unread");
-              }}
-              onDelete={async (id) => {
-                if (confirm("Delete this inquiry?")) {
-                  const ok = await deleteEnquiry(id);
-                  if (ok) showToast("Inquiry deleted");
                 }
               }}
             />
@@ -440,28 +422,43 @@ export default function AdminDashboard() {
               if (ok) showToast("New Project Added to Portfolio!");
             } else if (projectModal.item?._id || projectModal.item?.id) {
               const id = projectModal.item._id || projectModal.item.id!;
+              const desiredOrder = Number(data.order);
+              if (desiredOrder > 0) {
+                // Auto-shift collision-free sequence:
+                const list = [...projects];
+                const curIdx = list.findIndex((p) => p._id === id || p.id === id);
+                if (curIdx !== -1) {
+                  const [moved] = list.splice(curIdx, 1);
+                  const targetIdx = Math.max(0, Math.min(desiredOrder - 1, list.length));
+                  list.splice(targetIdx, 0, { ...moved, ...data, order: desiredOrder });
+                  const payload = list.map((p, i) => ({
+                    id: (p._id || p.id || "") as string,
+                    order: i + 1,
+                  }));
+                  await reorderProjects(payload);
+                }
+              }
               ok = await updateProject(id, data);
-              if (ok) showToast("Project Updated successfully!");
+              if (ok) showToast("Project Updated & Sequences Adjusted!");
             }
             if (ok) setProjectModal({ open: false, mode: "add" });
           }}
         />
       )}
 
-      {/* 360 Slide Add Modal */}
-      {slideModal.open && (
-        <Slide360Modal
-          onClose={() => setSlideModal({ open: false, mode: "add" })}
-          onUpload={uploadImage}
-          onSave={async (data) => {
-            const ok = await create360Slide(data);
-            if (ok) {
-              showToast("New image added to 360 Digital Solution section!");
-              setSlideModal({ open: false, mode: "add" });
-            }
+      {/* Full-Fledged Drag & Drop Sequence Editor Modal */}
+      {seqModalOpen && (
+        <SequenceEditorModal
+          projects={projects}
+          onClose={() => setSeqModalOpen(false)}
+          onSave={async (orders) => {
+            const ok = await reorderProjects(orders);
+            if (ok) showToast("All project sequences saved successfully!");
           }}
         />
       )}
+
+
 
       {/* Testimonial Add/Edit Modal */}
       {testimonialModal.open && (
@@ -541,29 +538,6 @@ export default function AdminDashboard() {
         />
       )}
 
-      {/* 360 Slide View Modal */}
-      {viewSlide && (
-        <Slide360ViewModal
-          slide={viewSlide}
-          onClose={() => setViewSlide(null)}
-          onToggleActive={async (slide) => {
-            const ok = await update360Slide(slide._id, { active: !slide.active });
-            if (ok) {
-              showToast(`Slide marked ${!slide.active ? "Active" : "Inactive"}`);
-              setViewSlide((prev) => (prev ? { ...prev, active: !prev.active } : null));
-            }
-          }}
-          onDelete={async (id) => {
-            if (confirm("Delete this 360 showcase image?")) {
-              const ok = await delete360Slide(id);
-              if (ok) {
-                showToast("Slide deleted");
-                setViewSlide(null);
-              }
-            }
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -576,8 +550,6 @@ function OverviewTab({
   testimonialsCount,
   pendingTestimonials,
   slides360Count,
-  enquiriesCount,
-  unreadEnquiries,
   maintenanceMode,
   onNavigate,
   onToggleMaintenance,
@@ -587,8 +559,6 @@ function OverviewTab({
   testimonialsCount: number;
   pendingTestimonials: number;
   slides360Count: number;
-  enquiriesCount: number;
-  unreadEnquiries: number;
   maintenanceMode: boolean;
   onNavigate: (t: AdminTab) => void;
   onToggleMaintenance?: () => void;
@@ -604,6 +574,14 @@ function OverviewTab({
       color: "from-blue-600 to-indigo-600",
     },
     {
+      title: "Porfolio Slides",
+      value: slides360Count,
+      sub: "Projects in 360° carousel",
+      tab: "story360" as AdminTab,
+      icon: "sparkles",
+      color: "from-purple-600 to-pink-600",
+    },
+    {
       title: "Testimonials",
       value: testimonialsCount,
       sub: pendingTestimonials > 0 ? `${pendingTestimonials} pending approval` : "All approved",
@@ -611,23 +589,6 @@ function OverviewTab({
       tab: "testimonials" as AdminTab,
       icon: "quote",
       color: "from-amber-500 to-orange-600",
-    },
-    {
-      title: "360° Digital Solution",
-      value: slides360Count,
-      sub: "Showcase & project slides",
-      tab: "story360" as AdminTab,
-      icon: "sparkles",
-      color: "from-purple-600 to-pink-600",
-    },
-    {
-      title: "Client Inquiries",
-      value: enquiriesCount,
-      sub: unreadEnquiries > 0 ? `${unreadEnquiries} unread inquiries` : "All read",
-      badge: unreadEnquiries > 0 ? "New" : undefined,
-      tab: "enquiries" as AdminTab,
-      icon: "mail",
-      color: "from-emerald-600 to-teal-600",
     },
   ];
 
@@ -713,7 +674,7 @@ function OverviewTab({
             onClick={() => onNavigate("story360")}
             className="btn btn-outline btn-sm"
           >
-            <Icon name="sparkles" className="size-4" /> Manage 360 Images
+            <Icon name="sparkles" className="size-4" /> Manage Porfolio Slides
           </button>
           <button
             onClick={() => onNavigate("testimonials")}
@@ -753,26 +714,42 @@ function ProjectsTab({
   onView,
   onEdit,
   onDelete,
+  onReorder,
+  onBatchReorder,
+  onOpenSequenceEditor,
 }: {
   projects: ProjectItem[];
   onAddNew: () => void;
   onView: (p: ProjectItem) => void;
   onEdit: (p: ProjectItem) => void;
   onDelete: (id: string) => void;
+  onReorder?: (id: string, newOrder: number) => Promise<boolean | void>;
+  onBatchReorder?: (orders: Array<{ id: string; order: number }>) => Promise<boolean | void>;
+  onOpenSequenceEditor?: () => void;
 }) {
+  const [viewSection, setViewSection] = useState<"card" | "list">("card");
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
 
-  const categories = useMemo(() => {
-    const list = projects.map((p) => (p.category || "").trim()).filter(Boolean);
-    return ["All", ...Array.from(new Set(list))];
-  }, [projects]);
+  const categories = [
+    "All",
+    "Dynamic Portfolio",
+    "Static Portfolio",
+    "Ecommerce",
+    "Custom Software",
+  ] as const;
 
   const filtered = useMemo(() => {
     return projects.filter((p) => {
       const pCat = (p.category || "").trim().toLowerCase();
       const fCat = catFilter.trim().toLowerCase();
-      const matchCat = catFilter === "All" || pCat === fCat;
+      let matchCat = catFilter === "All" || pCat === fCat;
+      if (!matchCat && catFilter !== "All") {
+        if (fCat === "dynamic portfolio") matchCat = pCat.includes("dynamic");
+        else if (fCat === "static portfolio") matchCat = pCat.includes("static");
+        else if (fCat === "ecommerce") matchCat = pCat.includes("ecom") || pCat.includes("commerce");
+        else if (fCat === "custom software") matchCat = pCat.includes("custom") || pCat.includes("software") || pCat.includes("erp") || pCat.includes("crm");
+      }
       const matchSearch =
         p.title.toLowerCase().includes(search.toLowerCase()) ||
         p.description?.toLowerCase().includes(search.toLowerCase()) ||
@@ -780,6 +757,31 @@ function ProjectsTab({
       return matchCat && matchSearch;
     });
   }, [projects, catFilter, search]);
+
+  const handleShiftRank = async (targetId: string, newRank: number) => {
+    if (!onBatchReorder) return;
+    const list = [...projects];
+    const curIdx = list.findIndex((p) => (p._id === targetId || p.id === targetId));
+    if (curIdx === -1) return;
+    const [moved] = list.splice(curIdx, 1);
+    const targetIdx = Math.max(0, Math.min(newRank - 1, list.length));
+    list.splice(targetIdx, 0, moved);
+
+    const payload = list.map((p, i) => ({
+      id: (p._id || p.id || "") as string,
+      order: i + 1,
+    }));
+    await onBatchReorder(payload);
+  };
+
+  const handleMove = async (index: number, direction: -1 | 1) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= filtered.length) return;
+    const targetItem = filtered[index];
+    const targetId = targetItem._id || targetItem.id || "";
+    if (!targetId) return;
+    await handleShiftRank(targetId, targetIndex + 1);
+  };
 
   return (
     <div className="space-y-6">
@@ -792,12 +794,55 @@ function ProjectsTab({
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Manage projects shown on the portfolio page and the 360° Digital Solution section (Optimal image: 16:9 widescreen, 1920 × 1080 px).
+            Manage projects shown on the portfolio page and the 360° carousel.
           </p>
         </div>
-        <button onClick={onAddNew} className="btn btn-gradient btn-sm self-start sm:self-auto">
-          <Icon name="plus" className="size-4" /> Add Project
-        </button>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Section Switcher: Card Wise Preview & List Wise */}
+          <div className="inline-flex items-center p-1 rounded-xl bg-[#070F1E] border border-blue-900/60 shadow-inner">
+            <button
+              type="button"
+              onClick={() => setViewSection("card")}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                viewSection === "card"
+                  ? "bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500 text-black shadow-md shadow-orange-500/25"
+                  : "text-blue-200/80 hover:text-white"
+              }`}
+            >
+              <Icon name="grid" className="size-3.5" />
+              Card Wise Preview
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewSection("list")}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                viewSection === "list"
+                  ? "bg-gradient-to-r from-orange-600 via-[#FF6B00] to-orange-500 text-black shadow-md shadow-orange-500/25"
+                  : "text-blue-200/80 hover:text-white"
+              }`}
+            >
+              <Icon name="list" className="size-3.5" />
+              List Wise
+            </button>
+          </div>
+
+          {onOpenSequenceEditor && (
+            <button
+              type="button"
+              onClick={onOpenSequenceEditor}
+              className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/60 bg-orange-500/10 hover:bg-[#FF6B00] hover:text-black text-orange-400 font-extrabold px-3.5 py-1.5 text-xs transition-all shadow-xs cursor-pointer"
+              title="Open Drag & Drop Sequence Editor"
+            >
+              <Icon name="layers" className="size-3.5" />
+              Arrange Sequence
+            </button>
+          )}
+
+          <button onClick={onAddNew} className="btn btn-gradient btn-sm self-start sm:self-auto">
+            <Icon name="plus" className="size-4" /> Add Project
+          </button>
+        </div>
       </div>
 
       {/* Filter bar */}
@@ -812,7 +857,7 @@ function ProjectsTab({
           />
         </div>
         <select
-          className="rounded-xl border border-blue-900/60 bg-[#070F1E] px-3 py-2.5 text-xs sm:text-sm text-white focus:border-amber-500 focus:outline-none max-w-[180px]"
+          className="rounded-xl border border-blue-900/60 bg-[#070F1E] px-3 py-2.5 text-xs sm:text-sm text-white focus:border-amber-500 focus:outline-none max-w-[220px]"
           value={catFilter}
           onChange={(e) => setCatFilter(e.target.value)}
         >
@@ -824,100 +869,298 @@ function ProjectsTab({
         </select>
       </div>
 
-      {/* Projects Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((p) => {
-          const id = p._id || p.id || "";
-          return (
-            <div
-              key={id}
-              className="rounded-2xl overflow-hidden flex flex-col justify-between bg-[#0B152B]/75 border border-blue-900/60 hover:border-amber-500/50 hover:shadow-xl transition-all duration-300 group shadow-md"
-            >
-              <div>
-                <div className="relative aspect-[16/10] bg-[#070F1E] overflow-hidden">
-                  <img
-                    src={p.image}
-                    alt={p.title}
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute top-3 left-3">
-                    <span className="rounded-full bg-navy/80 backdrop-blur-md px-2.5 py-0.5 text-[11px] font-bold text-white">
-                      {p.category}
-                    </span>
-                  </div>
-                  {p.showIn360 && (
-                    <div className="absolute top-3 right-3">
-                      <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-extrabold text-white">
-                        360° Active
+      {/* SECTION 1: Card Wise Preview */}
+      {viewSection === "card" && (
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((p, idx) => {
+            const id = p._id || p.id || "";
+            return (
+              <div
+                key={id}
+                className="rounded-2xl overflow-hidden flex flex-col justify-between h-full bg-[#0B152B]/75 border border-blue-900/60 hover:border-amber-500/50 hover:shadow-xl transition-all duration-300 group shadow-md"
+              >
+                <div>
+                  <div className="relative aspect-[21/10] bg-[#070F1E] overflow-hidden">
+                    <img
+                      src={p.image}
+                      alt={p.title}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                    />
+                    <div className="absolute top-3 left-3">
+                      <span className="rounded-full bg-navy/80 backdrop-blur-md px-2.5 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                        {p.category}
                       </span>
                     </div>
-                  )}
+                    {p.showIn360 && (
+                      <div className="absolute top-3 right-3">
+                        <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-extrabold text-white shadow-xs">
+                          360° Active
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-5">
+                    <h3 className="font-bold text-white text-base line-clamp-1 group-hover:text-amber-400 transition-colors" title={p.title}>
+                      {p.title}
+                    </h3>
+                    <div className="mt-2 h-14 overflow-y-auto pr-1 text-xs text-blue-200/70 leading-relaxed custom-scrollbar">
+                      {p.description || ""}
+                    </div>
+                    <div className="mt-3 h-6 flex items-center gap-1 overflow-x-auto no-scrollbar">
+                      {p.tags.map((t) => (
+                        <span
+                          key={t}
+                          className="shrink-0 rounded-full border border-blue-900/60 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-blue-200/80"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="p-5">
-                  <h3 className="font-bold text-white text-base line-clamp-1 group-hover:text-amber-400 transition-colors">{p.title}</h3>
-                  <p className="mt-1 text-xs text-blue-200/70 line-clamp-2 leading-relaxed">
-                    {p.description || "No description provided."}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-1">
-                    {p.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="rounded-full border border-blue-900/60 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-blue-200/80"
+                <div className="p-4 border-t border-blue-900/40 flex items-center justify-between gap-2 bg-[#070F1E]/60">
+                  <div className="flex items-center gap-2">
+                    {onReorder && (
+                      <div className="flex items-center gap-0.5 bg-[#0B152B] border border-blue-900/60 rounded-xl px-1.5 py-0.5 shadow-xs">
+                        <button
+                          type="button"
+                          onClick={() => handleMove(idx, -1)}
+                          disabled={idx === 0}
+                          title="Move earlier in sequence"
+                          className="p-1 rounded-lg text-slate-400 hover:text-amber-400 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors cursor-pointer"
+                        >
+                          <Icon name="arrow-left" className="size-3" />
+                        </button>
+                        <span className="text-[10px] font-bold text-amber-400 min-w-[22px] text-center" title={`Display sequence: #${idx + 1}`}>
+                          #{idx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleMove(idx, 1)}
+                          disabled={idx === filtered.length - 1}
+                          title="Move later in sequence"
+                          className="p-1 rounded-lg text-slate-400 hover:text-amber-400 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors cursor-pointer"
+                        >
+                          <Icon name="arrow-right" className="size-3" />
+                        </button>
+                      </div>
+                    )}
+
+                    {p.href && p.href !== "#" ? (
+                      <a
+                        href={p.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-semibold text-brand hover:underline flex items-center gap-1"
                       >
-                        {t}
-                      </span>
-                    ))}
+                        Live Demo ↗
+                      </a>
+                    ) : (
+                      <span className="text-xs text-slate-400">No URL</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => onView(p)}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-blue-900/60 bg-[#0B152B] px-3 py-1.5 text-xs font-bold text-blue-200 hover:border-amber-500/50 hover:text-amber-400 transition-all shadow-xs cursor-pointer"
+                      title="View full project details"
+                    >
+                      <Icon name="eye" className="size-3.5" />
+                      <span>View</span>
+                    </button>
+                    <button
+                      onClick={() => onEdit(p)}
+                      className="p-1.5 rounded-lg text-blue-200/80 hover:bg-amber-500/10 hover:text-amber-400 transition-colors cursor-pointer"
+                      title="Edit project"
+                    >
+                      <Icon name="edit" className="size-4" />
+                    </button>
+                    <button
+                      onClick={() => onDelete(id)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-colors cursor-pointer"
+                      title="Delete project"
+                    >
+                      <Icon name="trash" className="size-4" />
+                    </button>
                   </div>
                 </div>
               </div>
+            );
+          })}
+        </div>
+      )}
 
-              <div className="p-4 border-t border-blue-900/40 flex items-center justify-between gap-2 bg-[#070F1E]/60">
-                {p.href && p.href !== "#" ? (
-                  <a
-                    href={p.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs font-semibold text-brand hover:underline flex items-center gap-1"
-                  >
-                    Live Demo ↗
-                  </a>
-                ) : (
-                  <span className="text-xs text-slate-400">No URL</span>
-                )}
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => onView(p)}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-blue-900/60 bg-[#0B152B] px-3 py-1.5 text-xs font-bold text-blue-200 hover:border-amber-500/50 hover:text-amber-400 transition-all shadow-xs"
-                    title="View full project details"
-                  >
-                    <Icon name="eye" className="size-3.5" />
-                    <span>View</span>
-                  </button>
-                  <button
-                    onClick={() => onEdit(p)}
-                    className="p-1.5 rounded-lg text-blue-200/80 hover:bg-red-500/10 hover:text-red-400 transition-colors"
-                    title="Edit project"
-                  >
-                    <Icon name="edit" className="size-4" />
-                  </button>
-                  <button
-                    onClick={() => onDelete(id)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600"
-                    title="Delete project"
-                  >
-                    <Icon name="trash" className="size-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {/* SECTION 2: List Wise */}
+      {viewSection === "list" && (
+        <div className="rounded-2xl border border-blue-900/60 bg-[#0B152B]/80 overflow-hidden shadow-xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead className="bg-[#070F1E] border-b border-blue-900/60 text-slate-400 font-bold uppercase tracking-wider text-[11px]">
+                <tr>
+                  <th className="py-3.5 px-4 w-32 text-center">Arrange Seq</th>
+                  <th className="py-3.5 px-4 w-28">Preview</th>
+                  <th className="py-3.5 px-4 min-w-[200px]">Project Title</th>
+                  <th className="py-3.5 px-4">Category</th>
+                  <th className="py-3.5 px-4 text-center">360° Slide</th>
+                  <th className="py-3.5 px-4">Live Link</th>
+                  <th className="py-3.5 px-4 text-right pr-6">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-blue-900/30">
+                {filtered.map((p, idx) => {
+                  const id = p._id || p.id || "";
+                  return (
+                    <tr key={id} className="hover:bg-white/[0.03] transition-colors">
+                      {/* Arrange in Sequence Option (Editable Rank + Auto-Shift) */}
+                      <td className="py-3 px-4">
+                        <div className="flex items-center justify-center gap-1 bg-[#070F1E] border border-blue-900/50 rounded-xl px-2 py-1 shadow-xs">
+                          <button
+                            type="button"
+                            onClick={() => handleMove(idx, -1)}
+                            disabled={idx === 0}
+                            title="Move up in sequence"
+                            className="p-1 rounded-md text-slate-400 hover:text-amber-400 hover:bg-white/5 disabled:opacity-20 cursor-pointer"
+                          >
+                            <Icon name="arrow-up" className="size-3.5" />
+                          </button>
+                          <input
+                            type="number"
+                            min={1}
+                            max={projects.length}
+                            defaultValue={idx + 1}
+                            key={`seq-input-${id}-${idx + 1}`}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                const val = parseInt(e.currentTarget.value, 10);
+                                if (!isNaN(val) && val >= 1 && val !== idx + 1) {
+                                  handleShiftRank(id, val);
+                                }
+                              }
+                            }}
+                            onBlur={(e) => {
+                              const val = parseInt(e.target.value, 10);
+                              if (!isNaN(val) && val >= 1 && val !== idx + 1) {
+                                handleShiftRank(id, val);
+                              }
+                            }}
+                            className="w-10 h-6 text-center font-black text-amber-400 bg-black/40 hover:bg-black/60 focus:bg-[#0B152B] rounded border border-blue-900/40 focus:border-amber-500/70 outline-none text-xs cursor-text transition-all"
+                            title="Type new rank and press Enter (automatically shifts others without collision)"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleMove(idx, 1)}
+                            disabled={idx === filtered.length - 1}
+                            title="Move down in sequence"
+                            className="p-1 rounded-md text-slate-400 hover:text-amber-400 hover:bg-white/5 disabled:opacity-20 cursor-pointer"
+                          >
+                            <Icon name="arrow-down" className="size-3.5" />
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* 16:9 Thumbnail Preview */}
+                      <td className="py-3 px-4">
+                        <div className="w-20 sm:w-22 aspect-video rounded-lg overflow-hidden border border-blue-900/60 bg-[#070F1E] shrink-0 shadow-xs">
+                          <img src={p.image} alt={p.title} className="size-full object-cover" />
+                        </div>
+                      </td>
+
+                      {/* Project Title & Tags */}
+                      <td className="py-3 px-4">
+                        <div className="font-bold text-white text-sm hover:text-amber-400 transition-colors" title={p.title}>
+                          {p.title}
+                        </div>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {p.tags.slice(0, 3).map((t) => (
+                            <span key={t} className="rounded-full border border-blue-900/50 bg-white/5 px-2 py-0.2 text-[9px] text-blue-200/70">
+                              {t}
+                            </span>
+                          ))}
+                          {p.tags.length > 3 && (
+                            <span className="text-[9px] text-slate-500">+{p.tags.length - 3}</span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Category Badge */}
+                      <td className="py-3 px-4">
+                        <span className="inline-block rounded-full bg-navy/80 border border-blue-800/60 px-2.5 py-0.5 text-xs font-bold text-blue-200 whitespace-nowrap">
+                          {p.category}
+                        </span>
+                      </td>
+
+                      {/* 360° Status */}
+                      <td className="py-3 px-4 text-center">
+                        {p.showIn360 ? (
+                          <span className="inline-block rounded-full bg-brand/20 border border-brand/50 text-brand px-2.5 py-0.5 text-[10px] font-black whitespace-nowrap">
+                            360° Active
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-slate-500">Inactive</span>
+                        )}
+                      </td>
+
+                      {/* Live Link */}
+                      <td className="py-3 px-4">
+                        {p.href && p.href !== "#" ? (
+                          <a
+                            href={p.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs font-semibold text-brand hover:underline inline-flex items-center gap-1"
+                          >
+                            <span>Visit</span>
+                            <span className="text-[10px]">↗</span>
+                          </a>
+                        ) : (
+                          <span className="text-slate-500 text-xs">—</span>
+                        )}
+                      </td>
+
+                      {/* Action Column: Strictly View, Edit, Delete */}
+                      <td className="py-3 px-4 text-right pr-6">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => onView(p)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-blue-900/60 bg-[#0B152B] px-2.5 py-1 text-xs font-bold text-blue-200 hover:border-amber-500/60 hover:text-amber-400 transition-all cursor-pointer shadow-xs"
+                            title="View project details"
+                          >
+                            <Icon name="eye" className="size-3.5" />
+                            <span>View</span>
+                          </button>
+                          <button
+                            onClick={() => onEdit(p)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-blue-900/60 bg-[#0B152B] px-2.5 py-1 text-xs font-bold text-blue-200 hover:border-amber-500/60 hover:text-amber-400 transition-all cursor-pointer shadow-xs"
+                            title="Edit project"
+                          >
+                            <Icon name="edit" className="size-3.5" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            onClick={() => onDelete(id)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-900/50 bg-red-950/20 px-2.5 py-1 text-xs font-bold text-red-400 hover:bg-red-900/40 hover:text-red-300 transition-all cursor-pointer shadow-xs"
+                            title="Delete project"
+                          >
+                            <Icon name="trash" className="size-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {filtered.length === 0 && (
         <div className="rounded-2xl p-12 text-center bg-[#0B152B]/60 border border-blue-900/50 text-blue-200/70 text-sm">
-          No projects found. Click &quot;Add Project&quot; to create your first one!
+          No projects found in this category. Click &quot;Add Project&quot; to create a new one!
         </div>
       )}
     </div>
@@ -925,192 +1168,234 @@ function ProjectsTab({
 }
 
 // -------------------------------------------------------------
-// 3. 360° DIGITAL SOLUTION SECTION TAB
+// 3. PORFOLIO SLIDE TAB (360° Carousel Slides & Sequence Reorder)
 // -------------------------------------------------------------
-function Story360Tab({
-  slides,
+const INITIAL_PROJECT_TITLES = new Set([
+  "phoolrani sarees",
+  "sp art hubs",
+  "karyon college",
+  "sonai residential world school",
+  "sonai school erp software",
+  "erudition infinite",
+  "suraj naturo dry fruits",
+  "finsight ai",
+  "medicare+ mobile app",
+  "salessync crm",
+  "manufactpro erp",
+  "nova brand identity system",
+  "pixelcraft ui kit & graphics",
+]);
+
+function PorfolioSlideTab({
   projects = [],
   onNavigate,
-  onAddNew,
+  onReorder,
+  onBatchReorder,
+  onToggle360,
   onView,
-  onToggleActive,
-  onDelete,
+  onEdit,
 }: {
-  slides: Story360Item[];
   projects?: ProjectItem[];
   onNavigate?: (t: AdminTab) => void;
-  onAddNew: () => void;
-  onView: (s: Story360Item) => void;
-  onToggleActive: (slide: Story360Item) => void;
-  onDelete: (id: string) => void;
+  onReorder?: (id: string, newOrder: number) => Promise<boolean | void>;
+  onBatchReorder?: (orders: Array<{ id: string; order: number }>) => Promise<boolean | void>;
+  onToggle360?: (project: ProjectItem) => Promise<boolean | void>;
+  onView?: (p: ProjectItem) => void;
+  onEdit?: (p: ProjectItem) => void;
 }) {
-  const INITIAL_PROJECT_TITLES = new Set([
-    "phoolrani sarees",
-    "sp art hubs",
-    "karyon college",
-    "sonai residential world school",
-    "sonai school erp software",
-    "erudition infinite",
-    "suraj naturo dry fruits",
-    "finsight ai",
-    "medicare+ mobile app",
-    "salessync crm",
-    "manufactpro erp",
-    "nova brand identity system",
-    "pixelcraft ui kit & graphics",
-  ]);
 
   const hasAdminProjects = projects.some((p) => {
     const t = (p.title || "").trim().toLowerCase();
     return !INITIAL_PROJECT_TITLES.has(t);
   });
 
-  const projectsIn360 = projects.filter((p) => {
-    if (p.showIn360 === false) return false;
-    const t = (p.title || "").trim().toLowerCase();
-    if (hasAdminProjects && INITIAL_PROJECT_TITLES.has(t)) return false;
-    return Boolean(p.image);
-  });
+  const projectsIn360 = useMemo(() => {
+    return projects.filter((p) => {
+      if (p.showIn360 === false) return false;
+      const t = (p.title || "").trim().toLowerCase();
+      if (hasAdminProjects && INITIAL_PROJECT_TITLES.has(t)) return false;
+      return Boolean(p.image);
+    });
+  }, [projects, hasAdminProjects]);
 
-  // Filter out any default placeholder template assets (/about-story-slide-)
-  const customSlides = slides.filter((s) => s.src && !s.src.startsWith("/about-story-slide-"));
+  const handleSlideMove = async (index: number, direction: -1 | 1) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= projectsIn360.length) return;
+    const currentItem = projectsIn360[index];
+    const currentId = currentItem._id || currentItem.id || "";
+    if (!currentId) return;
+
+    if (onBatchReorder) {
+      const list = [...projects];
+      const curIdx = list.findIndex((p) => (p._id === currentId || p.id === currentId));
+      if (curIdx === -1) return;
+      const [moved] = list.splice(curIdx, 1);
+      const targetProj = projectsIn360[targetIndex];
+      const targetProjId = targetProj._id || targetProj.id;
+      const targetListIdx = list.findIndex((p) => (p._id === targetProjId || p.id === targetProjId));
+      const insertAt = targetListIdx === -1 ? curIdx : (direction === 1 ? targetListIdx + 1 : targetListIdx);
+      list.splice(insertAt, 0, moved);
+
+      const payload = list.map((p, i) => ({
+        id: (p._id || p.id || "") as string,
+        order: i + 1,
+      }));
+      await onBatchReorder(payload);
+    } else if (onReorder) {
+      const targetItem = projectsIn360[targetIndex];
+      const targetId = targetItem._id || targetItem.id || "";
+      await onReorder(currentId, targetIndex + 1);
+      await onReorder(targetId, index + 1);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-xl font-bold text-white">
-            360° Digital Solution Section Images
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            Manage images in the &quot;About Us / 360° Digital Solution&quot; section on homepage & portfolio (Optimal: 16:9 aspect ratio, 1920 × 1080 px).
+          <div className="flex items-center gap-2">
+            <h2 className="font-display text-xl font-bold text-white">Porfolio Slide</h2>
+            <span className="rounded-full bg-gradient-to-r from-orange-600 to-orange-500 text-black px-2.5 py-0.5 text-xs font-black shadow-xs">
+              {projectsIn360.length} in Carousel
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Projects displayed in 360° Carousel on homepage & portfolio. Widescreen 16:9 previews matching the live main site display.
           </p>
         </div>
-        <button onClick={onAddNew} className="btn btn-gradient btn-sm self-start sm:self-auto">
-          <Icon name="plus" className="size-4" /> Add 360 Image
-        </button>
-      </div>
 
-      {/* Custom 360 Slides Added by Admin */}
-      <div>
-        <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-          <span>Custom Images Added in 360 Section ({customSlides.length})</span>
-        </h3>
-        {customSlides.length === 0 ? (
-          <div className="rounded-2xl p-8 bg-[#0B152B]/60 border border-dashed border-blue-900/60 text-center text-blue-200/70">
-            <p className="text-sm text-slate-500 font-medium">No custom 360 images added yet.</p>
-            <p className="text-xs text-slate-400 mt-1">Upload images specifically for the circular 360° showcase carousel.</p>
-            <button onClick={onAddNew} className="btn btn-gradient btn-sm mt-4">
-              <Icon name="plus" className="size-4" /> Add 360 Image Now
-            </button>
-          </div>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {customSlides.map((s) => (
-              <div
-                key={s._id}
-                className="rounded-2xl overflow-hidden bg-[#0B152B]/75 border border-blue-900/60 hover:border-amber-500/50 flex flex-col justify-between transition-all duration-300 shadow-md group"
-              >
-                <div>
-                  <div className="relative aspect-square bg-[#070F1E] overflow-hidden flex items-center justify-center p-3">
-                    <div className="relative size-full rounded-full overflow-hidden border-4 border-blue-900/70 shadow-inner">
-                      <img src={s.src} alt={s.alt} className="size-full object-cover" />
-                    </div>
-                    <div className="absolute top-3 right-3">
-                      <button
-                        onClick={() => onToggleActive(s)}
-                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-xs cursor-pointer ${
-                          s.active !== false
-                            ? "bg-emerald-500 text-white"
-                            : "bg-white/10 text-slate-300"
-                        }`}
-                      >
-                        {s.active !== false ? "Active in 360" : "Inactive"}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h4 className="font-bold text-sm text-white truncate">
-                      {s.title || "Custom 360 Slide"}
-                    </h4>
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">{s.alt}</p>
-                  </div>
-                </div>
-
-                <div className="p-3 border-t border-blue-900/40 flex items-center justify-between bg-[#070F1E]/60">
-                  <span className="text-[11px] text-slate-400">Order: {s.order || 0}</span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => onView(s)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-blue-900/60 bg-[#0B152B] px-2.5 py-1 text-xs font-semibold text-blue-200 hover:border-amber-500 hover:text-amber-400 shadow-xs"
-                    >
-                      <Icon name="eye" className="size-3.5" /> View
-                    </button>
-                    <button
-                      onClick={() => onDelete(s._id)}
-                      className="text-xs text-red-600 hover:bg-rose-50 p-1 rounded-md flex items-center gap-1 cursor-pointer"
-                      title="Remove image"
-                    >
-                      <Icon name="trash" className="size-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        {onNavigate && (
+          <button
+            onClick={() => onNavigate("projects")}
+            className="btn btn-outline btn-sm self-start sm:self-auto text-xs"
+          >
+            Manage All in Projects →
+          </button>
         )}
       </div>
 
-      {/* Projects Displayed in 360 Section */}
-      <div className="pt-4 border-t border-slate-200">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-sm font-bold text-white">
-              Projects Displayed in 360° Carousel ({projectsIn360.length})
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              These project images show in the 360° circular carousel because &quot;Show in 360°&quot; is active.
-            </p>
-          </div>
+      {projectsIn360.length === 0 ? (
+        <div className="rounded-2xl p-12 text-center bg-[#0B152B]/60 border border-dashed border-blue-900/60 text-blue-200/70">
+          <p className="text-base text-white font-bold">No projects currently marked to display in 360° Carousel.</p>
+          <p className="text-xs text-slate-400 mt-1">
+            Edit any project in Portfolio Projects and enable &quot;Show in 360° Digital Solution section carousel&quot;.
+          </p>
           {onNavigate && (
-            <button
-              onClick={() => onNavigate("projects")}
-              className="btn btn-outline btn-sm text-xs"
-            >
-              Manage in Projects →
+            <button onClick={() => onNavigate("projects")} className="btn btn-gradient btn-sm mt-4">
+              Go to Portfolio Projects
             </button>
           )}
         </div>
-
-        {projectsIn360.length === 0 ? (
-          <p className="text-xs text-slate-400 italic">No projects currently marked to display in 360° carousel.</p>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {projectsIn360.map((p) => (
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {projectsIn360.map((p, idx) => {
+            const id = p._id || p.id || "";
+            return (
               <div
-                key={p._id || p.id}
-                className="rounded-2xl overflow-hidden bg-[#0B152B]/75 border border-blue-900/60 hover:border-amber-500/50 flex items-center gap-3 p-3 transition-all duration-300 shadow-md"
+                key={id}
+                className="rounded-2xl overflow-hidden bg-[#0B152B]/80 border border-blue-900/60 hover:border-orange-500/50 flex flex-col justify-between transition-all duration-300 shadow-lg group"
               >
-                <div className="size-14 rounded-full overflow-hidden shrink-0 border-2 border-brand/30">
-                  <img src={p.image} alt={p.title} className="size-full object-cover" />
+                <div>
+                  {/* 16:9 Aspect Video Preview Card (Exact Main Site Parity, Not Circle) */}
+                  <div className="relative aspect-video bg-[#070F1E] overflow-hidden">
+                    <img
+                      src={p.image}
+                      alt={p.title}
+                      className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute top-3 left-3 flex items-center gap-2">
+                      <span className="rounded-full bg-black/85 backdrop-blur-md px-2.5 py-0.5 text-xs font-black text-amber-400 border border-amber-500/30 shadow-md">
+                        Slide #{idx + 1}
+                      </span>
+                      <span className="rounded-full bg-navy/85 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                        {p.category}
+                      </span>
+                    </div>
+                    <div className="absolute top-3 right-3">
+                      <span className="rounded-full bg-gradient-to-r from-orange-600 to-orange-500 px-2.5 py-0.5 text-[10px] font-black text-black shadow-md">
+                        360° Active
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-4">
+                    <h4 className="font-bold text-sm text-white truncate group-hover:text-amber-400 transition-colors" title={p.title}>
+                      {p.title}
+                    </h4>
+                    <p className="text-xs text-blue-200/70 line-clamp-2 mt-1 leading-relaxed">
+                      {p.description || "Project featured in the 360° carousel."}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-bold text-xs text-white truncate">{p.title}</h4>
-                  <span className="inline-block mt-0.5 rounded-full bg-brand/10 text-brand px-2 py-0.5 text-[10px] font-bold">
-                    360° Active
-                  </span>
+
+                {/* Footer with Sequence Reorder Controls & Actions */}
+                <div className="p-3 border-t border-blue-900/40 flex items-center justify-between bg-[#070F1E]/70 gap-2">
+                  {/* Arrange in Sequence Option */}
+                  <div className="flex items-center gap-1 bg-[#0B152B] border border-blue-900/60 rounded-xl px-2 py-1 shadow-xs">
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mr-1">Seq:</span>
+                    <button
+                      type="button"
+                      onClick={() => handleSlideMove(idx, -1)}
+                      disabled={idx === 0}
+                      title="Move earlier in 360 carousel sequence"
+                      className="p-1 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-white/5 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors cursor-pointer"
+                    >
+                      <Icon name="arrow-left" className="size-3.5" />
+                    </button>
+                    <span className="text-xs font-black text-amber-400 min-w-[20px] text-center">
+                      #{idx + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleSlideMove(idx, 1)}
+                      disabled={idx === projectsIn360.length - 1}
+                      title="Move later in 360 carousel sequence"
+                      className="p-1 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-white/5 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors cursor-pointer"
+                    >
+                      <Icon name="arrow-right" className="size-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {onView && (
+                      <button
+                        onClick={() => onView(p)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-blue-900/60 bg-[#0B152B] px-2.5 py-1 text-xs font-bold text-blue-200 hover:border-amber-500 hover:text-amber-400 transition-colors cursor-pointer"
+                        title="View Details"
+                      >
+                        <Icon name="eye" className="size-3.5" />
+                        <span>View</span>
+                      </button>
+                    )}
+                    {onEdit && (
+                      <button
+                        onClick={() => onEdit(p)}
+                        className="p-1.5 rounded-lg text-blue-200/80 hover:bg-amber-500/10 hover:text-amber-400 transition-colors cursor-pointer"
+                        title="Edit Project"
+                      >
+                        <Icon name="edit" className="size-3.5" />
+                      </button>
+                    )}
+                    {onToggle360 && (
+                      <button
+                        onClick={() => onToggle360(p)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-red-900/40 bg-red-950/30 px-2 py-1 text-[11px] font-bold text-red-300 hover:bg-red-900/50 transition-colors cursor-pointer"
+                        title="Remove from 360 Carousel (Keeps project in portfolio)"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
-// -------------------------------------------------------------
-// 4. TESTIMONIALS TAB (Approve / Reject / CRUD)
-// -------------------------------------------------------------
 function TestimonialsTab({
   testimonials,
   onAddNew,
@@ -1273,129 +1558,6 @@ function TestimonialsTab({
 }
 
 // -------------------------------------------------------------
-// 5. INQUIRIES TAB
-// -------------------------------------------------------------
-function EnquiriesTab({
-  enquiries,
-  onToggleRead,
-  onDelete,
-}: {
-  enquiries: Array<{
-    id: string;
-    name: string;
-    email: string;
-    phone?: string;
-    company?: string;
-    subject: string;
-    message: string;
-    date: string;
-    read: boolean;
-  }>;
-  onToggleRead: (id: string, read: boolean) => void;
-  onDelete: (id: string) => void;
-}) {
-  const [openId, setOpenId] = useState<string | null>(null);
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-xl font-bold text-white">Client Inquiries</h2>
-        <p className="text-xs text-muted-foreground">
-          Inquiries submitted via the Contact form are stored here and emailed via Nodemailer.
-        </p>
-      </div>
-
-      <div className="rounded-2xl divide-y divide-blue-900/40 overflow-hidden bg-[#0B152B]/75 border border-blue-900/60 shadow-xl">
-        {enquiries.length === 0 && (
-          <div className="p-8 text-center text-sm text-muted-foreground">No inquiries received yet.</div>
-        )}
-        {enquiries.map((e) => (
-          <div key={e.id} className="p-5 transition-colors hover:bg-white/[0.03]">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <span
-                  className={`size-2.5 rounded-full ${
-                    !e.read ? "bg-brand animate-pulse" : "bg-blue-900/60"
-                  }`}
-                  title={!e.read ? "Unread" : "Read"}
-                />
-                <div>
-                  <h4 className="font-bold text-sm text-white">
-                    {e.subject} <span className="font-normal text-slate-500">— {e.name}</span>
-                  </h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {e.email} {e.phone ? `· ${e.phone}` : ""} · {e.date}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    setOpenId(openId === e.id ? null : e.id);
-                    if (!e.read) onToggleRead(e.id, true);
-                  }}
-                  className="btn btn-outline btn-sm text-xs py-1"
-                >
-                  <Icon name="eye" className="size-3.5" /> {openId === e.id ? "Hide" : "View"}
-                </button>
-                <button
-                  onClick={() => onToggleRead(e.id, !e.read)}
-                  className="rounded-lg border border-blue-900/60 px-2.5 py-1 text-xs font-semibold text-blue-200 hover:bg-white/10"
-                >
-                  {e.read ? "Mark unread" : "Mark read"}
-                </button>
-                <button
-                  onClick={() => onDelete(e.id)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-600"
-                  title="Delete"
-                >
-                  <Icon name="trash" className="size-4" />
-                </button>
-              </div>
-            </div>
-
-            {openId === e.id && (
-              <div className="mt-4 rounded-2xl bg-[#070F1E] p-5 border border-blue-900/60 text-xs sm:text-sm space-y-3 animate-in fade-in text-white">
-                <div className="grid sm:grid-cols-2 gap-2 text-blue-200/70 pb-2 border-b border-blue-900/40">
-                  <p>
-                    <strong>Company:</strong> {e.company || "Not specified"}
-                  </p>
-                  <p>
-                    <strong>Phone:</strong>{" "}
-                    {e.phone ? (
-                      <a href={`tel:${e.phone}`} className="text-brand hover:underline">
-                        {e.phone}
-                      </a>
-                    ) : (
-                      "Not provided"
-                    )}
-                  </p>
-                </div>
-                <div>
-                  <strong className="block text-blue-200 mb-1">Message Content:</strong>
-                  <p className="whitespace-pre-wrap text-slate-200 leading-relaxed bg-[#0B152B] p-3 rounded-xl border border-blue-900/60">
-                    {e.message}
-                  </p>
-                </div>
-                <div className="pt-2 flex gap-2">
-                  <a
-                    href={`mailto:${e.email}?subject=Re: ${encodeURIComponent(e.subject)}`}
-                    className="btn btn-gradient btn-sm text-xs"
-                  >
-                    Reply via Email
-                  </a>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// -------------------------------------------------------------
 // 6. FOOTER & COMPANY TAB
 // -------------------------------------------------------------
 function FooterCompanyTab({
@@ -1411,7 +1573,7 @@ function FooterCompanyTab({
     tagline: settings.company?.tagline || "",
     email: settings.company?.email || "support@sosyncaitech.in",
     phone1: settings.company?.phones?.[0] || "+91 91724 03714",
-    phone2: settings.company?.phones?.[1] || "+91 80103 40822",
+    phone2: settings.company?.phones?.[1] || "+91 70043 30655",
     addressLines: settings.company?.addressLines?.join("\n") || "",
     copyright: settings.company?.copyright || "SOSync Ai Tech IT Solution. All rights reserved.",
   });
@@ -1558,11 +1720,12 @@ function SettingsTab({
   }, [settings]);
 
   const [social, setSocial] = useState({
-    linkedin: settings.social?.linkedin || "https://linkedin.com",
+    linkedin: settings.social?.linkedin || "https://www.linkedin.com/company/sosyncaitech/posts/?feedView=all",
     twitter: settings.social?.twitter || "https://twitter.com",
-    instagram: settings.social?.instagram || "https://instagram.com",
+    instagram: settings.social?.instagram || "https://www.instagram.com/sosyncaitech_multimediaa?obrf=MWtxODgwdGo2YWpzZg==",
     facebook: settings.social?.facebook || "https://facebook.com",
     github: settings.social?.github || "https://github.com",
+    youtube: settings.social?.youtube || "https://www.youtube.com/@SOSyncAITech",
   });
 
   const handleToggleMaintenance = async () => {
@@ -1714,7 +1877,7 @@ function SettingsTab({
               className="field"
               value={social.linkedin}
               onChange={(e) => setSocial({ ...social, linkedin: e.target.value })}
-              placeholder="https://linkedin.com/company/sosync-ai-tech"
+              placeholder="https://www.linkedin.com/company/sosyncaitech/posts/?feedView=all"
             />
           </div>
           <div>
@@ -1732,7 +1895,7 @@ function SettingsTab({
               className="field"
               value={social.instagram}
               onChange={(e) => setSocial({ ...social, instagram: e.target.value })}
-              placeholder="https://instagram.com/sosyncaitech"
+              placeholder="https://instagram.com/sosyncaitech_multimediaa"
             />
           </div>
           <div>
@@ -1751,6 +1914,15 @@ function SettingsTab({
               value={social.github}
               onChange={(e) => setSocial({ ...social, github: e.target.value })}
               placeholder="https://github.com/sosyncaitech"
+            />
+          </div>
+          <div>
+            <label className="label">YouTube Channel URL</label>
+            <input
+              className="field"
+              value={(social as any).youtube || ""}
+              onChange={(e) => setSocial({ ...social, youtube: e.target.value })}
+              placeholder="https://www.youtube.com/@SOSyncAITech"
             />
           </div>
         </div>
@@ -1788,17 +1960,15 @@ function ProjectFormModal({
     "Static Portfolio",
     "Ecommerce",
     "Custom Software",
-    "Mobile Application",
-  ];
+  ] as const;
 
-  const initialIsCustom = Boolean(initial?.category && !STANDARD_CATEGORIES.includes(initial.category));
   const [title, setTitle] = useState(initial?.title || "");
-  const [category, setCategory] = useState(initialIsCustom ? "Custom" : (initial?.category || "Dynamic Portfolio"));
-  const [customCategory, setCustomCategory] = useState(initialIsCustom ? (initial?.category || "") : "");
+  const [category, setCategory] = useState(initial?.category || "Dynamic Portfolio");
   const [href, setHref] = useState(initial?.href || "");
   const [image, setImage] = useState(initial?.image || "");
   const [description, setDescription] = useState(initial?.description || "");
   const [tags, setTags] = useState(initial?.tags ? initial.tags.join(", ") : "React, Next.js, Node.js");
+  const [order, setOrder] = useState<number>(initial?.order ?? 0);
   const [showIn360, setShowIn360] = useState(initial?.showIn360 !== false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -1820,8 +1990,7 @@ function ProjectFormModal({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const effectiveCategory = category === "Custom" ? customCategory.trim() : category.trim();
-    if (!title || !image || !effectiveCategory) {
+    if (!title || !image || !category) {
       alert("Please provide title, category, and an image.");
       return;
     }
@@ -1830,12 +1999,13 @@ function ProjectFormModal({
     try {
       await onSave({
         title,
-        category: effectiveCategory,
+        category: category.trim(),
         href,
         image,
         description,
         tags: tags.split(",").map((s: string) => s.trim()).filter(Boolean),
         showIn360,
+        order: Number(order) || 0,
       });
     } finally {
       setSaving(false);
@@ -1844,30 +2014,37 @@ function ProjectFormModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/70 backdrop-blur-sm p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl rounded-3xl p-6 sm:p-8 bg-[#0B152B] border border-blue-900/80 my-8 shadow-2xl animate-in fade-in zoom-in-95 text-white"
+        className="w-full max-w-lg max-h-[88vh] flex flex-col rounded-2xl bg-[#0B152B] border border-blue-900/80 shadow-2xl my-auto overflow-hidden animate-in fade-in zoom-in-95 text-white"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-blue-900/40 pb-4">
-          <h2 className="font-display text-xl font-bold text-white">
-            {mode === "add" ? "Add New Portfolio Project" : "Edit Project"}
-          </h2>
+        {/* Compact Header */}
+        <div className="px-5 py-3.5 border-b border-blue-900/40 bg-[#070F1E]/90 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-orange-500/15 text-brand">
+              <Icon name={mode === "add" ? "plus" : "edit"} className="size-4" />
+            </span>
+            <h2 className="font-display text-base sm:text-lg font-bold text-white">
+              {mode === "add" ? "Add Portfolio Project" : "Edit Project"}
+            </h2>
+          </div>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+            className="rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
           >
-            <Icon name="close" className="size-5" />
+            <Icon name="close" className="size-4" />
           </button>
         </div>
 
-        <form onSubmit={submit} className="mt-5 space-y-4">
+        {/* Scrollable Form Body */}
+        <form onSubmit={submit} className="flex-1 overflow-y-auto p-5 space-y-3.5 custom-scrollbar">
           <div>
-            <label className="label">Project Title *</label>
+            <label className="text-xs font-bold text-slate-300 block mb-1">Project Title *</label>
             <input
-              className="field"
+              className="field h-10 text-xs sm:text-sm px-3.5 py-2"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -1875,35 +2052,25 @@ function ProjectFormModal({
             />
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="label">Category *</label>
+              <label className="text-xs font-bold text-slate-300 block mb-1">Category *</label>
               <select
-                className="field"
+                className="w-full h-10 rounded-xl border border-blue-900/70 bg-[#070F1E] px-3.5 text-xs sm:text-sm text-white focus:border-orange-500 focus:outline-none transition-colors cursor-pointer"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
+                required
               >
-                <option value="Dynamic Portfolio">Dynamic Portfolio</option>
-                <option value="Static Portfolio">Static Portfolio</option>
-                <option value="Ecommerce">Ecommerce</option>
-                <option value="Custom Software">Custom Software</option>
-                <option value="Mobile Application">Mobile Application</option>
-                <option value="Custom">+ Custom / Other Category</option>
+                <option value="Dynamic Portfolio" className="bg-[#0B152B] text-white">Dynamic Portfolio</option>
+                <option value="Static Portfolio" className="bg-[#0B152B] text-white">Static Portfolio</option>
+                <option value="Ecommerce" className="bg-[#0B152B] text-white">Ecommerce</option>
+                <option value="Custom Software" className="bg-[#0B152B] text-white">Custom Software</option>
               </select>
-              {category === "Custom" && (
-                <input
-                  className="field mt-2"
-                  placeholder="Enter custom category name..."
-                  value={customCategory}
-                  onChange={(e) => setCustomCategory(e.target.value)}
-                  required
-                />
-              )}
             </div>
             <div>
-              <label className="label">Live Project URL</label>
+              <label className="text-xs font-bold text-slate-300 block mb-1">Live Project URL</label>
               <input
-                className="field"
+                className="field h-10 text-xs sm:text-sm px-3.5 py-2"
                 value={href}
                 onChange={(e) => setHref(e.target.value)}
                 placeholder="https://example.com"
@@ -1911,34 +2078,29 @@ function ProjectFormModal({
             </div>
           </div>
 
-          {/* Image & Cloudinary Upload */}
+          {/* Unified Compact Image & Upload Group */}
           <div>
-            <div className="flex items-center justify-between">
-              <label className="label mb-0">Project Image *</label>
-              <span className="text-[11px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
-                16:9 • 1920 × 1080 px
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-bold text-slate-300">Project Image *</label>
+              <span className="text-[10px] text-amber-400 font-semibold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                16:9 or 21:10 Widescreen
               </span>
             </div>
-            <div className="flex gap-2 mt-1">
+            <div className="flex items-center gap-2">
               <input
-                className="field flex-1"
+                className="field flex-1 h-10 text-xs sm:text-sm px-3.5 py-2"
                 required
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
-                placeholder="Image URL or upload below"
+                placeholder="Paste image URL or upload"
               />
-            </div>
-
-            <div className="mt-2.5 flex items-center gap-3">
-              <label className="btn btn-outline btn-sm cursor-pointer text-xs font-semibold py-1.5">
+              <label className="btn btn-outline btn-sm h-10 px-3.5 text-xs shrink-0 cursor-pointer flex items-center gap-1.5 font-bold hover:border-orange-500/60">
                 {uploading ? (
-                  <span className="flex items-center gap-1.5">
-                    <span className="size-3 rounded-full border-2 border-brand border-t-transparent animate-spin" />
-                    Uploading to Cloudinary...
-                  </span>
+                  <span className="size-3 rounded-full border-2 border-brand border-t-transparent animate-spin" />
                 ) : (
-                  "Upload File to Cloudinary ☁️"
+                  <Icon name="upload" className="size-3.5" />
                 )}
+                <span>{uploading ? "Uploading..." : "Upload ☁️"}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -1948,205 +2110,85 @@ function ProjectFormModal({
                 />
               </label>
               {image && (
-                <div className="size-10 rounded-lg overflow-hidden border border-blue-900/60 shrink-0">
+                <div className="size-10 rounded-lg overflow-hidden border border-blue-900/60 shrink-0 bg-[#070F1E] shadow-xs">
                   <img src={image} alt="preview" className="size-full object-cover" />
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Optimal Resolution & Ratio Guidance Box */}
-            <div className="mt-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 p-2.5 text-xs text-amber-200/90 flex items-start gap-2">
-              <span className="text-sm">📐</span>
-              <div>
-                <p className="font-semibold text-amber-300">
-                  Optimal Dimensions: <strong>16:9 Aspect Ratio (1920 × 1080 px)</strong>
-                </p>
-                <p className="text-[11px] text-slate-300 mt-0.5">
-                  Screenshots in 16:9 widescreen fit edge-to-edge with zero cropping or empty black borders. PNG or WebP format recommended for sharpest text clarity.
-                </p>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-2">
+              <label className="text-xs font-bold text-slate-300 block mb-1">Technologies / Tags</label>
+              <input
+                className="field h-10 text-xs sm:text-sm px-3.5 py-2"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="React, Next.js, Node.js"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-300 block mb-1">Sequence / Order</label>
+              <input
+                type="number"
+                min={0}
+                className="field h-10 text-xs sm:text-sm px-3.5 py-2 text-center font-bold text-amber-400"
+                value={order}
+                onChange={(e) => setOrder(Number(e.target.value) || 0)}
+                placeholder="1, 2, 3..."
+                title="Display sequence rank (1 appears first)"
+              />
             </div>
           </div>
 
           <div>
-            <label className="label">Technologies / Tags (Comma separated)</label>
-            <input
-              className="field"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="React, Next.js, Node.js, Express.js, MongoDB"
-            />
-          </div>
-
-          <div>
-            <label className="label">Description</label>
+            <label className="text-xs font-bold text-slate-300 block mb-1">Description</label>
             <textarea
-              rows={3}
-              className="field"
+              rows={2}
+              className="field text-xs sm:text-sm px-3 py-2 leading-relaxed"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief summary of the digital product, deliverables, and impact..."
             />
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2 pt-0.5">
             <input
               type="checkbox"
               id="chk360"
               checked={showIn360}
               onChange={(e) => setShowIn360(e.target.checked)}
-              className="size-4 text-brand rounded"
+              className="size-4 text-brand rounded cursor-pointer"
             />
-            <label htmlFor="chk360" className="text-xs font-semibold text-blue-200 cursor-pointer">
-              Show in 360° Digital Solution section carousel as well
+            <label htmlFor="chk360" className="text-xs font-semibold text-blue-200 cursor-pointer select-none">
+              Show in 360° Carousel as well
             </label>
           </div>
-
-          <div className="mt-6 flex justify-end gap-2 pt-4 border-t border-slate-100">
-            <button type="button" onClick={onClose} className="btn btn-outline btn-sm">
-              Cancel
-            </button>
-            <button type="submit" disabled={saving || uploading} className="btn btn-gradient btn-sm">
-              {saving ? "Saving..." : mode === "add" ? "Create Project" : "Update Project"}
-            </button>
-          </div>
         </form>
-      </div>
-    </div>
-  );
-}
 
-/** 360 Slide Upload Modal */
-function Slide360Modal({
-  onClose,
-  onUpload,
-  onSave,
-}: {
-  onClose: () => void;
-  onUpload: (file: File | string, folder?: string) => Promise<string | null>;
-  onSave: (data: any) => Promise<void>;
-}) {
-  const [src, setSrc] = useState("");
-  const [title, setTitle] = useState("");
-  const [alt, setAlt] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    try {
-      const url = await onUpload(file, "sosync/story360");
-      if (url) setSrc(url);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!src) {
-      alert("Please upload or enter an image URL.");
-      return;
-    }
-    setSaving(true);
-    try {
-      await onSave({ src, title, alt: alt || title || "SOSync 360 Showcase" });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/70 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl p-5 sm:p-6 bg-[#0B152B] border border-blue-900/80 shadow-2xl animate-in fade-in zoom-in-95 text-white"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 className="font-display text-lg font-bold">Add 360° Section Image</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-blue-200">
-            <Icon name="close" className="size-5" />
+        {/* Sticky Footer */}
+        <div className="px-5 py-3 border-t border-blue-900/40 bg-[#070F1E]/95 flex items-center justify-end gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-outline btn-sm text-xs cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={saving || uploading}
+            className="btn btn-gradient btn-sm text-xs font-black shadow-lg shadow-orange-500/25 cursor-pointer"
+          >
+            {saving ? "Saving..." : mode === "add" ? "Create Project" : "Update Project"}
           </button>
         </div>
-
-        <form onSubmit={submit} className="mt-4 space-y-4">
-          <div>
-            <label className="label">Slide Title</label>
-            <input
-              className="field"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. AI Technology Labs"
-            />
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between">
-              <label className="label mb-0">Image URL / Cloudinary Upload *</label>
-              <span className="text-[11px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
-                16:9 • 1920 × 1080 px
-              </span>
-            </div>
-            <input
-              className="field mt-1"
-              required
-              value={src}
-              onChange={(e) => setSrc(e.target.value)}
-              placeholder="Image URL or upload below"
-            />
-            <div className="mt-2.5 flex items-center gap-3">
-              <label className="btn btn-outline btn-sm cursor-pointer text-xs font-semibold py-1.5">
-                {uploading ? "Uploading..." : "Upload from Device ☁️"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={uploading}
-                  onChange={handleFileUpload}
-                />
-              </label>
-              {src && (
-                <div className="size-10 rounded-full overflow-hidden border border-blue-900/60 shrink-0">
-                  <img src={src} alt="preview" className="size-full object-cover" />
-                </div>
-              )}
-            </div>
-
-            {/* Optimal Resolution & Ratio Guidance Box */}
-            <div className="mt-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 p-2.5 text-xs text-amber-200/90 flex items-start gap-2">
-              <span className="text-sm">📐</span>
-              <div>
-                <p className="font-semibold text-amber-300">
-                  Optimal Dimensions: <strong>16:9 Aspect Ratio (1920 × 1080 px)</strong>
-                </p>
-                <p className="text-[11px] text-slate-300 mt-0.5">
-                  Screenshots uploaded in 16:9 display full width without clipping or black letterbox borders.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 flex justify-end gap-2 pt-3 border-t border-slate-100">
-            <button type="button" onClick={onClose} className="btn btn-outline btn-sm">
-              Cancel
-            </button>
-            <button type="submit" disabled={saving || uploading} className="btn btn-gradient btn-sm">
-              {saving ? "Adding..." : "Add to 360 Section"}
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   );
 }
 
-/** Testimonial Modal (Add or Edit) */
 function TestimonialModal({
   mode = "add",
   initial,
@@ -2182,28 +2224,28 @@ function TestimonialModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/70 backdrop-blur-sm p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-3xl p-6 bg-[#0B152B] border border-blue-900/80 shadow-2xl animate-in fade-in zoom-in-95 my-8 text-white"
+        className="w-full max-w-md max-h-[88vh] flex flex-col rounded-2xl bg-[#0B152B] border border-blue-900/80 shadow-2xl animate-in fade-in zoom-in-95 my-auto overflow-hidden text-white"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 className="font-display text-lg font-bold">
+        <div className="px-5 py-3.5 border-b border-blue-900/40 bg-[#070F1E]/90 flex items-center justify-between shrink-0">
+          <h3 className="font-display text-base sm:text-lg font-bold text-white">
             {mode === "add" ? "Add New Testimonial" : "Edit Testimonial"}
           </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-blue-200">
-            <Icon name="close" className="size-5" />
+          <button onClick={onClose} className="rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors cursor-pointer">
+            <Icon name="close" className="size-4" />
           </button>
         </div>
 
-        <form onSubmit={submit} className="mt-4 space-y-4">
-          <div className="grid sm:grid-cols-2 gap-4">
+        <form onSubmit={submit} className="flex-1 overflow-y-auto p-5 space-y-3 custom-scrollbar">
+          <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="label">Client Name *</label>
+              <label className="text-xs font-bold text-slate-300 block mb-1">Client Name *</label>
               <input
-                className="field"
+                className="field h-10 text-xs sm:text-sm px-3.5 py-2"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -2211,80 +2253,79 @@ function TestimonialModal({
               />
             </div>
             <div>
-              <label className="label">Rating</label>
+              <label className="text-xs font-bold text-slate-300 block mb-1">Rating</label>
               <select
-                className="field"
+                className="w-full h-10 rounded-xl border border-blue-900/70 bg-[#070F1E] px-3.5 text-xs sm:text-sm text-white focus:border-orange-500 focus:outline-none transition-colors cursor-pointer"
                 value={rating}
                 onChange={(e) => setRating(Number(e.target.value))}
               >
-                <option value={5}>⭐⭐⭐⭐⭐ (5 Stars)</option>
-                <option value={4}>⭐⭐⭐⭐ (4 Stars)</option>
-                <option value={3}>⭐⭐⭐ (3 Stars)</option>
+                <option value={5} className="bg-[#0B152B] text-white">⭐⭐⭐⭐⭐ (5 Stars)</option>
+                <option value={4} className="bg-[#0B152B] text-white">⭐⭐⭐⭐ (4 Stars)</option>
+                <option value={3} className="bg-[#0B152B] text-white">⭐⭐⭐ (3 Stars)</option>
               </select>
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="label">Role / Designation</label>
+              <label className="text-xs font-bold text-slate-300 block mb-1">Role / Designation</label>
               <input
-                className="field"
+                className="field h-10 text-xs sm:text-sm px-3.5 py-2"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                placeholder="Founder & CEO"
+                placeholder="Managing Director"
               />
             </div>
             <div>
-              <label className="label">Company / Organization</label>
+              <label className="text-xs font-bold text-slate-300 block mb-1">Company / Organization</label>
               <input
-                className="field"
+                className="field h-10 text-xs sm:text-sm px-3.5 py-2"
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
-                placeholder="Karyon Group"
+                placeholder="Apex Healthcare"
               />
             </div>
           </div>
 
           <div>
-            <label className="label">Approval Status</label>
-            <select
-              className="field"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as any)}
-            >
-              <option value="approved">Approved (Visible on Website)</option>
-              <option value="pending">Pending Review</option>
-              <option value="rejected">Rejected (Hidden)</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="label">Review / Feedback *</label>
+            <label className="text-xs font-bold text-slate-300 block mb-1">Review *</label>
             <textarea
-              rows={4}
+              className="field text-xs sm:text-sm px-3 py-2 leading-relaxed"
               required
-              className="field"
+              rows={3}
               value={review}
               onChange={(e) => setReview(e.target.value)}
-              placeholder="What did the client say about working with SOSync AI Tech?"
+              placeholder="Client's review or testimonial quote..."
             />
           </div>
 
-          <div className="mt-6 flex justify-end gap-2 pt-3 border-t border-slate-100">
-            <button type="button" onClick={onClose} className="btn btn-outline btn-sm">
-              Cancel
-            </button>
-            <button type="submit" disabled={saving} className="btn btn-gradient btn-sm">
-              {saving ? "Saving..." : mode === "add" ? "Add & Approve Testimonial" : "Save Changes"}
-            </button>
+          <div>
+            <label className="text-xs font-bold text-slate-300 block mb-1">Status</label>
+            <select
+              className="w-full h-10 rounded-xl border border-blue-900/70 bg-[#070F1E] px-3.5 text-xs sm:text-sm text-white focus:border-orange-500 focus:outline-none transition-colors cursor-pointer"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as "approved" | "pending" | "rejected")}
+            >
+              <option value="approved" className="bg-[#0B152B] text-white">Approved (Live on Website)</option>
+              <option value="pending" className="bg-[#0B152B] text-white">Pending Approval</option>
+              <option value="rejected" className="bg-[#0B152B] text-white">Rejected</option>
+            </select>
           </div>
         </form>
+
+        <div className="px-5 py-3 border-t border-blue-900/40 bg-[#070F1E]/95 flex justify-end gap-2 shrink-0">
+          <button type="button" onClick={onClose} className="btn btn-outline btn-sm text-xs cursor-pointer">
+            Cancel
+          </button>
+          <button type="button" onClick={submit} disabled={saving} className="btn btn-gradient btn-sm text-xs font-black cursor-pointer">
+            {saving ? "Saving..." : mode === "add" ? "Create Testimonial" : "Update Testimonial"}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-/** Project View Details Modal */
 function ProjectViewModal({
   project,
   onClose,
@@ -2298,37 +2339,37 @@ function ProjectViewModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/70 backdrop-blur-sm p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl rounded-3xl p-6 sm:p-8 bg-[#0B152B] border border-blue-900/80 shadow-2xl my-8 animate-in fade-in zoom-in-95 text-white"
+        className="w-full max-w-lg max-h-[88vh] flex flex-col rounded-2xl bg-[#0B152B] border border-blue-900/80 shadow-2xl my-auto overflow-hidden animate-in fade-in zoom-in-95 text-white"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-blue-900/40 pb-4">
+        <div className="px-5 py-3.5 border-b border-blue-900/40 bg-[#070F1E]/90 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-orange-500/15 text-brand">
               <Icon name="eye" className="size-4" />
             </span>
-            <h3 className="font-display text-lg font-bold text-white">Project Details</h3>
+            <h3 className="font-display text-base sm:text-lg font-bold text-white">Project Details</h3>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+            className="rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
           >
-            <Icon name="close" className="size-5" />
+            <Icon name="close" className="size-4" />
           </button>
         </div>
 
-        <div className="mt-5 space-y-5">
-          <div className="relative aspect-video rounded-2xl overflow-hidden bg-[#070F1E] border border-blue-900/60">
+        <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
+          <div className="relative aspect-[21/10] rounded-xl overflow-hidden bg-[#070F1E] border border-blue-900/60 flex items-center justify-center shadow-md">
             <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
-            <div className="absolute top-3 left-3 flex gap-2">
-              <span className="rounded-full bg-navy/85 backdrop-blur-md px-3 py-1 text-xs font-bold text-white">
+            <div className="absolute top-2.5 left-2.5 flex gap-1.5">
+              <span className="rounded-full bg-navy/85 backdrop-blur-md px-2.5 py-0.5 text-[11px] font-bold text-white">
                 {project.category}
               </span>
               {project.showIn360 && (
-                <span className="rounded-full bg-brand px-2.5 py-1 text-[11px] font-extrabold text-white">
+                <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-extrabold text-white">
                   360° Active
                 </span>
               )}
@@ -2336,91 +2377,307 @@ function ProjectViewModal({
           </div>
 
           <div>
-            <h2 className="font-display text-2xl font-bold text-white">{project.title}</h2>
-            <p className="mt-2 text-sm text-blue-200/80 leading-relaxed whitespace-pre-wrap">
+            <h2 className="font-display text-xl font-bold text-white">{project.title}</h2>
+            <p className="mt-1.5 text-xs sm:text-sm text-blue-200/80 leading-relaxed whitespace-pre-wrap">
               {project.description || "No detailed description provided."}
             </p>
           </div>
 
           {project.tags && project.tags.length > 0 && (
             <div>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Technologies & Stack</p>
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Technologies</h4>
               <div className="flex flex-wrap gap-1.5">
-                {project.tags.map((t) => (
+                {project.tags.map((tag) => (
                   <span
-                    key={t}
-                    className="rounded-full border border-blue-900/60 bg-white/5 px-3 py-1 text-xs font-semibold text-blue-200"
+                    key={tag}
+                    className="rounded-full border border-blue-900/60 bg-white/5 px-2.5 py-0.5 text-xs font-semibold text-blue-200"
                   >
-                    {t}
+                    {tag}
                   </span>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4 rounded-xl bg-[#070F1E] p-4 border border-blue-900/40 text-xs text-blue-200/80">
-            <div>
-              <span className="text-slate-400 block font-medium">Live Website URL</span>
-              {project.href && project.href !== "#" ? (
-                <a
-                  href={project.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-semibold text-brand hover:underline mt-0.5 inline-block truncate max-w-full"
-                >
-                  {project.href} ↗
-                </a>
-              ) : (
-                <span className="text-slate-500 mt-0.5 block">Not specified</span>
-              )}
-            </div>
-            <div>
-              <span className="text-slate-400 block font-medium">Database Document ID</span>
-              <span className="font-mono text-blue-200/80 mt-0.5 block truncate">
-                {project._id || project.id || "N/A"}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-            {project.href && project.href !== "#" ? (
+          {project.href && (
+            <div className="text-xs">
+              <span className="text-slate-400">Live URL: </span>
               <a
                 href={project.href}
                 target="_blank"
                 rel="noreferrer"
-                className="btn btn-outline btn-sm text-xs"
+                className="text-brand hover:underline font-semibold"
               >
-                Open Live Site ↗
+                {project.href} ↗
               </a>
-            ) : <div />}
-            <div className="flex gap-2">
-              {onDelete && (
-                <button
-                  onClick={() => onDelete(project._id || project.id || "")}
-                  className="btn btn-sm text-xs text-rose-600 hover:bg-rose-50 border border-rose-200"
-                >
-                  <Icon name="trash" className="size-3.5" /> Delete
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  onClose();
-                  onEdit(project);
-                }}
-                className="btn btn-gradient btn-sm text-xs"
-              >
-                <Icon name="edit" className="size-3.5" /> Edit Project
-              </button>
-              <button onClick={onClose} className="btn btn-secondary btn-sm text-xs">
-                Close
-              </button>
             </div>
+          )}
+        </div>
+
+        <div className="px-5 py-3 border-t border-blue-900/40 bg-[#070F1E]/95 flex items-center justify-between shrink-0">
+          <div>
+            {onDelete && (
+              <button
+                onClick={() => onDelete(project._id || project.id || "")}
+                className="btn btn-outline btn-sm text-xs text-red-400 hover:bg-red-500/10 hover:border-red-500/40 cursor-pointer"
+              >
+                <Icon name="trash" className="size-3.5" />
+                Delete
+              </button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onEdit(project)}
+              className="btn btn-gradient btn-sm text-xs cursor-pointer"
+            >
+              <Icon name="edit" className="size-3.5" />
+              Edit Project
+            </button>
+            <button onClick={onClose} className="btn btn-outline btn-sm text-xs cursor-pointer">
+              Close
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+function SequenceEditorModal({
+  projects,
+  onClose,
+  onSave,
+}: {
+  projects: ProjectItem[];
+  onClose: () => void;
+  onSave: (orders: Array<{ id: string; order: number }>) => Promise<boolean | void>;
+}) {
+  const [items, setItems] = useState<ProjectItem[]>(() => [...projects]);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const moveItem = (fromIdx: number, toIdx: number) => {
+    if (toIdx < 0 || toIdx >= items.length || fromIdx === toIdx) return;
+    const next = [...items];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    setItems(next);
+  };
+
+  const shiftToRank = (fromIdx: number, targetRank: number) => {
+    const clampedRank = Math.max(1, Math.min(targetRank, items.length));
+    const targetIdx = clampedRank - 1;
+    moveItem(fromIdx, targetIdx);
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIdx(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIdx === null || draggedIdx === index) return;
+    moveItem(draggedIdx, index);
+    setDraggedIdx(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIdx(null);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload = items.map((p, idx) => ({
+        id: (p._id || p.id || "") as string,
+        order: idx + 1,
+      }));
+      await onSave(payload);
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-5 overflow-y-auto"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-3xl max-h-[92vh] flex flex-col rounded-3xl bg-[#0B152B] border border-blue-900/80 shadow-2xl animate-in fade-in zoom-in-95 text-white my-auto overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-5 sm:p-6 border-b border-blue-900/40 flex items-center justify-between bg-[#070F1E]/90">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🔀</span>
+              <h2 className="font-display text-lg sm:text-xl font-bold text-white">
+                Project Sequence Editor
+              </h2>
+              <span className="rounded-full bg-gradient-to-r from-orange-600 to-orange-500 text-black px-2.5 py-0.5 text-xs font-black">
+                {items.length} Projects
+              </span>
+            </div>
+            <p className="text-xs text-blue-200/70 mt-1">
+              Drag & drop cards, use quick buttons, or enter rank numbers. Lower numbers appear first on the live website.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+          >
+            <Icon name="close" className="size-5" />
+          </button>
+        </div>
+
+        {/* Scrollable list */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-2.5 custom-scrollbar">
+          {items.map((p, idx) => {
+            const id = p._id || p.id || "";
+            const isDragging = draggedIdx === idx;
+            return (
+              <div
+                key={id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, idx)}
+                onDragOver={(e) => handleDragOver(e, idx)}
+                onDragEnd={handleDragEnd}
+                className={`flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 p-3 rounded-2xl border transition-all duration-200 ${
+                  isDragging
+                    ? "bg-amber-500/20 border-amber-500/80 shadow-lg scale-[1.01]"
+                    : "bg-[#070F1E]/80 border-blue-900/50 hover:border-amber-500/40 hover:bg-white/[0.02]"
+                }`}
+              >
+                {/* Drag Handle & Sequence Rank */}
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="p-1.5 text-slate-400 hover:text-amber-400 cursor-grab active:cursor-grabbing rounded-lg hover:bg-white/5"
+                    title="Drag to reorder"
+                  >
+                    <span className="text-lg font-black leading-none">⠿</span>
+                  </div>
+
+                  <div className="flex items-center gap-1 bg-[#0B152B] border border-blue-900/60 rounded-xl px-2 py-1 shadow-inner">
+                    <span className="text-[10px] font-black text-slate-400 uppercase">#</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={items.length}
+                      value={idx + 1}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        if (!isNaN(val)) shiftToRank(idx, val);
+                      }}
+                      className="w-8 text-center font-black text-amber-400 bg-transparent outline-none text-xs cursor-text"
+                      title="Type number to move"
+                    />
+                  </div>
+                </div>
+
+                {/* Thumbnail & Title */}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-16 h-10 aspect-video rounded-lg overflow-hidden border border-blue-900/60 bg-[#0B152B] shrink-0">
+                    <img src={p.image} alt={p.title} className="size-full object-cover" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-bold text-xs sm:text-sm text-white truncate" title={p.title}>
+                      {p.title}
+                    </h4>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="rounded-full bg-navy/80 px-2 py-0.2 text-[9px] font-bold text-blue-200">
+                        {p.category}
+                      </span>
+                      {p.showIn360 && (
+                        <span className="rounded-full bg-brand/20 text-brand px-1.5 py-0.2 text-[9px] font-black">
+                          360°
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Movement Buttons */}
+                <div className="flex items-center gap-1 ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => moveItem(idx, 0)}
+                    disabled={idx === 0}
+                    className="px-2 py-1 rounded-lg border border-blue-900/50 bg-[#0B152B] text-[10px] font-bold text-slate-300 hover:text-amber-400 hover:border-amber-500/50 disabled:opacity-20 cursor-pointer"
+                    title="Send directly to Top (#1)"
+                  >
+                    Top
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveItem(idx, idx - 1)}
+                    disabled={idx === 0}
+                    className="p-1.5 rounded-lg border border-blue-900/50 bg-[#0B152B] text-slate-300 hover:text-amber-400 hover:border-amber-500/50 disabled:opacity-20 cursor-pointer"
+                    title="Move Up 1 step"
+                  >
+                    <Icon name="arrow-up" className="size-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveItem(idx, idx + 1)}
+                    disabled={idx === items.length - 1}
+                    className="p-1.5 rounded-lg border border-blue-900/50 bg-[#0B152B] text-slate-300 hover:text-amber-400 hover:border-amber-500/50 disabled:opacity-20 cursor-pointer"
+                    title="Move Down 1 step"
+                  >
+                    <Icon name="arrow-down" className="size-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveItem(idx, items.length - 1)}
+                    disabled={idx === items.length - 1}
+                    className="px-2 py-1 rounded-lg border border-blue-900/50 bg-[#0B152B] text-[10px] font-bold text-slate-300 hover:text-amber-400 hover:border-amber-500/50 disabled:opacity-20 cursor-pointer"
+                    title="Send to Bottom"
+                  >
+                    End
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 sm:p-5 border-t border-blue-900/40 flex items-center justify-between bg-[#070F1E]/90 gap-3">
+          <button
+            type="button"
+            onClick={() => setItems([...projects])}
+            className="text-xs font-bold text-slate-400 hover:text-white cursor-pointer px-3 py-1.5"
+          >
+            Reset Order
+          </button>
+
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className="btn btn-outline btn-sm text-xs cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="btn btn-gradient btn-sm text-xs font-black shadow-lg shadow-orange-500/30 cursor-pointer"
+            >
+              {saving ? "Saving All..." : "Save All Sequences"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 /** Testimonial View Details Modal */
 function TestimonialViewModal({
@@ -2444,15 +2701,15 @@ function TestimonialViewModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-3xl p-6 sm:p-8 bg-[#0B152B] border border-blue-900/80 shadow-2xl my-8 animate-in fade-in zoom-in-95 text-white"
+        className="w-full max-w-lg max-h-[88vh] flex flex-col rounded-3xl bg-[#0B152B] border border-blue-900/80 shadow-2xl my-auto overflow-hidden animate-in fade-in zoom-in-95 text-white"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-blue-900/40 pb-4">
+        <div className="flex items-center justify-between border-b border-blue-900/40 p-4 sm:p-5 bg-[#0B152B] shrink-0">
           <div className="flex items-center gap-2">
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
               <Icon name="eye" className="size-4" />
             </span>
-            <h3 className="font-display text-lg font-bold text-white">Review Details</h3>
+            <h3 className="font-display text-base sm:text-lg font-bold text-white">Review Details</h3>
           </div>
           <button
             onClick={onClose}
@@ -2462,15 +2719,15 @@ function TestimonialViewModal({
           </button>
         </div>
 
-        <div className="mt-5 space-y-5">
+        <div className="p-4 sm:p-5 space-y-4 overflow-y-auto custom-scrollbar flex-1">
           <div className="flex items-center justify-between">
             <span
               className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
                 testimonial.status === "approved"
-                  ? "bg-emerald-100 text-emerald-800"
+                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                   : testimonial.status === "rejected"
-                  ? "bg-red-100 text-red-800"
-                  : "bg-amber-100 text-amber-800 animate-pulse"
+                  ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                  : "bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse"
               }`}
             >
               Status: {testimonial.status}
@@ -2479,153 +2736,80 @@ function TestimonialViewModal({
               {[...Array(testimonial.rating || 5)].map((_, i) => (
                 <span key={i}>★</span>
               ))}
-              <span className="ml-1 text-xs text-slate-500">({testimonial.rating} / 5)</span>
+              <span className="ml-1 text-xs text-slate-400">({testimonial.rating} / 5)</span>
             </div>
           </div>
 
-          <div className="rounded-2xl bg-[#070F1E] p-5 border border-blue-900/60 text-white">
-            <p className="text-sm italic leading-relaxed text-white whitespace-pre-wrap">
+          <div className="rounded-2xl bg-[#070F1E] p-4 sm:p-5 border border-blue-900/60 text-white">
+            <p className="text-sm italic leading-relaxed text-blue-100 whitespace-pre-wrap">
               &ldquo;{testimonial.review}&rdquo;
             </p>
           </div>
 
-          <div className="flex items-center gap-3.5 pt-2">
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-cyan text-white text-base font-bold shadow-md">
+          <div className="flex items-center gap-3.5 pt-1">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-cyan text-white text-base font-bold shadow-md">
               {testimonial.initials || testimonial.name[0]}
             </span>
             <div>
               <h4 className="font-display text-base font-bold text-white">{testimonial.name}</h4>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-blue-200/70">
                 {testimonial.role ? testimonial.role : "Client"}
                 {testimonial.company ? ` · ${testimonial.company}` : ""}
               </p>
             </div>
           </div>
-
-          <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-            <div className="flex gap-2">
-              {testimonial.status !== "approved" && (
-                <button
-                  onClick={() => {
-                    onApprove(testimonial._id);
-                    onClose();
-                  }}
-                  className="btn btn-sm bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
-                >
-                  Approve Review
-                </button>
-              )}
-              {testimonial.status !== "rejected" && (
-                <button
-                  onClick={() => {
-                    onReject(testimonial._id);
-                    onClose();
-                  }}
-                  className="btn btn-sm btn-outline text-xs font-bold"
-                >
-                  Reject Review
-                </button>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  onClose();
-                  onEdit(testimonial);
-                }}
-                className="btn btn-gradient btn-sm text-xs"
-              >
-                <Icon name="edit" className="size-3.5" /> Edit
-              </button>
-              <button
-                onClick={() => {
-                  onClose();
-                  onDelete(testimonial._id);
-                }}
-                className="p-2 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"
-                title="Delete"
-              >
-                <Icon name="trash" className="size-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** 360 Slide View Details Modal */
-function Slide360ViewModal({
-  slide,
-  onClose,
-  onToggleActive,
-  onDelete,
-}: {
-  slide: Story360Item;
-  onClose: () => void;
-  onToggleActive: (slide: Story360Item) => void;
-  onDelete: (id: string) => void;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/70 backdrop-blur-sm p-4 overflow-y-auto"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md rounded-3xl p-6 bg-[#0B152B] border border-blue-900/80 shadow-2xl animate-in fade-in zoom-in-95 my-8 text-white"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 className="font-display text-lg font-bold">360° Slide Preview</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-blue-200">
-            <Icon name="close" className="size-5" />
-          </button>
         </div>
 
-        <div className="mt-4 space-y-4 text-center">
-          <div className="relative size-60 mx-auto rounded-full overflow-hidden border-4 border-brand/40 shadow-lg">
-            <img src={slide.src} alt={slide.alt} className="size-full object-cover" />
-          </div>
-          <div>
-            <h4 className="font-bold text-base text-white">{slide.title || "Showcase Slide"}</h4>
-            <p className="text-xs text-muted-foreground mt-1">{slide.alt}</p>
-          </div>
-          <div className="flex justify-center gap-2">
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-bold ${
-                slide.active !== false ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold" : "bg-white/10 text-slate-300 border border-white/10"
-              }`}
-            >
-              {slide.active !== false ? "Active in Carousel" : "Inactive"}
-            </span>
+        <div className="flex items-center justify-between p-4 sm:p-5 border-t border-blue-900/40 bg-[#070F1E]/80 shrink-0">
+          <div className="flex gap-2">
+            {testimonial.status !== "approved" && (
+              <button
+                type="button"
+                onClick={() => {
+                  onApprove(testimonial._id);
+                  onClose();
+                }}
+                className="btn btn-sm bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+              >
+                Approve Review
+              </button>
+            )}
+            {testimonial.status !== "rejected" && (
+              <button
+                type="button"
+                onClick={() => {
+                  onReject(testimonial._id);
+                  onClose();
+                }}
+                className="btn btn-sm btn-outline text-xs font-bold"
+              >
+                Reject Review
+              </button>
+            )}
           </div>
 
-          <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+          <div className="flex gap-2">
             <button
+              type="button"
               onClick={() => {
-                onToggleActive(slide);
                 onClose();
+                onEdit(testimonial);
               }}
-              className="btn btn-outline btn-sm text-xs"
+              className="btn btn-gradient btn-sm text-xs"
             >
-              {slide.active !== false ? "Deactivate" : "Activate"}
+              <Icon name="edit" className="size-3.5" /> Edit
             </button>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  onDelete(slide._id);
-                  onClose();
-                }}
-                className="btn btn-sm text-xs text-rose-600 hover:bg-rose-50"
-              >
-                Delete
-              </button>
-              <button onClick={onClose} className="btn btn-secondary btn-sm text-xs">
-                Close
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onDelete(testimonial._id);
+              }}
+              className="p-2 rounded-lg text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 transition-colors"
+              title="Delete"
+            >
+              <Icon name="trash" className="size-4" />
+            </button>
           </div>
         </div>
       </div>

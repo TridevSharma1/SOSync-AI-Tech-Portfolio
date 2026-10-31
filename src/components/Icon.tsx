@@ -8,6 +8,7 @@ const ICONS: Record<string, ReactNode> = {
   // UI
   menu: <path d="M4 6h16M4 12h16M4 18h16" />,
   close: <path d="M18 6 6 18M6 6l12 12" />,
+  "arrow-left": <path d="M19 12H5m7 7-7-7 7-7" />,
   "arrow-right": <path d="M5 12h14m-7-7 7 7-7 7" />,
   "chevron-down": <path d="m6 9 6 6 6-6" />,
   "chevron-right": <path d="m9 18 6-6-6-6" />,
